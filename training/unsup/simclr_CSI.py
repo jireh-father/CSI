@@ -32,9 +32,6 @@ def train(P, epoch, model, criterion, optimizer, scheduler, loader, logger=None,
 
     check = time.time()
     for n, (images, labels) in enumerate(loader):
-        print("images", len(images), type(images))
-        print("labels", len(labels), type(labels))
-        print(labels)
         model.train()
         count = n * P.n_gpus  # number of trained samples
 
@@ -48,7 +45,6 @@ def train(P, epoch, model, criterion, optimizer, scheduler, loader, logger=None,
             images1, images2 = hflip(images.repeat(2, 1, 1, 1)).chunk(2)  # hflip
         else:
             batch_size = images[0].size(0)
-            print("image size", images[0].size(), type(images[0]))
             images1, images2 = images[0].to(device), images[1].to(device)
         labels = labels.to(device)
 
