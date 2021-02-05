@@ -124,7 +124,7 @@ def get_transform_imagenet():
 
 def get_dataset(P, dataset, test_only=False, image_size=None, download=False, eval=False):
     if dataset in ['imagenet', 'cub', 'stanford_dogs', 'flowers102',
-                   'places365', 'food_101', 'caltech_256', 'dtd', 'pets']:#, 'skin']:
+                   'places365', 'food_101', 'caltech_256', 'dtd', 'pets', 'skin']:
         if eval:
             train_transform, test_transform = get_simclr_eval_transform_imagenet(P.ood_samples,
                                                                                  P.resize_factor, P.resize_fix)
