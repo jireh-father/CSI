@@ -47,7 +47,7 @@ def train(P, epoch, model, criterion, optimizer, scheduler, loader, logger=None,
             images1, images2 = hflip(images.repeat(2, 1, 1, 1)).chunk(2)  # hflip
         else:
             batch_size = images[0].size(0)
-            print("image size", images[0].size)
+            print("image size", list(images[0].size), type(images[0]))
             images1, images2 = images[0].to(device), images[1].to(device)
         labels = labels.to(device)
 
