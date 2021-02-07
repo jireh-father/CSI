@@ -194,7 +194,7 @@ def _get_features(P, model, loader, interp=False, imagenet=False, simclr_aug=Non
             with torch.no_grad():
                 kwargs = {layer: True for layer in layers}  # only forward selected layers
                 _, output_aux = model(x_t, **kwargs)
-
+                print(output_aux.shape)
             # add features in one batch
             for layer in layers:
                 feats = output_aux[layer].cpu()
