@@ -178,7 +178,7 @@ def _get_features(P, model, loader, interp=False, imagenet=False, simclr_aug=Non
             x = x_interp  # use interp as current batch
         if imagenet is True:
             x = torch.cat(x[0], dim=0)  # augmented list of x
-
+        print('input shape', x.shape)
         x = x.to(device)  # gpu tensor
 
         # compute features in one batch
