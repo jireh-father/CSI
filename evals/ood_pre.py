@@ -81,7 +81,8 @@ def eval_ood_detection(P, model, id_loader, ood_loaders, ood_scores, train_loade
 
     print(f'Compute OOD scores... (score: {ood_score})')
     scores_id = get_scores(P, feats_id, ood_score).numpy()
-    print('true accuracy', (scores_id >= 0.51).sum() / len(scores_id))
+    for i in range(40, 81):
+        print('true accuracy', i, (scores_id >= i/100).sum() / len(scores_id))
     print('true score', scores_id)
     scores_ood = dict()
     if P.one_class_idx is not None:
@@ -90,7 +91,8 @@ def eval_ood_detection(P, model, id_loader, ood_loaders, ood_scores, train_loade
     for ood, feats in feats_ood.items():
         scores_ood[ood] = get_scores(P, feats, ood_score).numpy()
         print('ood score', scores_ood[ood])
-        print('ood accuracy', (scores_ood[ood] < 0.51).sum() / len(scores_ood[ood]))
+        for i in range(40, 81):
+            print('ood accuracy', i, (scores_ood[ood] < i / 100).sum() / len(scores_ood[ood]))
         auroc_dict[ood][ood_score] = get_auroc(scores_id, scores_ood[ood])
         if P.one_class_idx is not None:
             one_class_score.append(scores_ood[ood])
