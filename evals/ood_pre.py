@@ -38,10 +38,6 @@ def eval_ood_detection(P, model, id_loader, ood_loaders, ood_scores, train_loade
         'layers': P.ood_layer,
     }
 
-    print('train batch_size', id_loader.batch_size)
-    for k in ood_loaders:
-        print('ood batch_size', k, ood_loaders[k].batch_size)
-
     print('Pre-compute global statistics...')
     feats_train = get_features(P, f'{P.dataset}_train', model, train_loader, prefix=prefix, **kwargs)  # (M, T, d)
 
@@ -182,7 +178,6 @@ def _get_features(P, model, loader, interp=False, imagenet=False, simclr_aug=Non
             x = x_interp  # use interp as current batch
         if imagenet is True:
             x = torch.cat(x[0], dim=0)  # augmented list of x
-        print('input shape', x.shape)
         x = x.to(device)  # gpu tensor
 
         # compute features in one batch
