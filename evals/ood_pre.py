@@ -71,6 +71,9 @@ def eval_ood_detection(P, model, id_loader, ood_loaders, ood_scores, train_loade
     print(f'weight_shi:\t' + '\t'.join(map('{:.4f}'.format, P.weight_shi)))
 
     print('Pre-compute features...')
+    print('train batch_size', id_loader.batch_size)
+    for k in ood_loaders:
+        print('ood batch_size', k, ood_loaders[k].batch_size)
     feats_id = get_features(P, P.dataset, model, id_loader, prefix=prefix, **kwargs)  # (N, T, d)
     feats_ood = dict()
     for ood, ood_loader in ood_loaders.items():
