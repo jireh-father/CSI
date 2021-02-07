@@ -143,7 +143,7 @@ def get_features(P, data_name, model, loader, interp=False, prefix='',
     # pre-compute features and save to the path
     left = [layer for layer in layers if layer not in feats_dict.keys()]
     if len(left) > 0:
-        _feats_dict = _get_features(P, model, loader, interp, P.dataset == 'imagenet',
+        _feats_dict = _get_features(P, model, loader, interp, (P.dataset == 'imagenet' or P.dataset == 'skin'),
                                     simclr_aug, sample_num, layers=left)
 
         for layer, feats in _feats_dict.items():
@@ -174,7 +174,8 @@ def _get_features(P, model, loader, interp=False, imagenet=False, simclr_aug=Non
             x_interp = (x + last) / 2 if i > 0 else x  # omit the first batch, assume batch sizes are equal
             last = x  # save the last batch
             x = x_interp  # use interp as current batch
-
+        print(len(x))
+        print(type(x))
         if imagenet is True:
             x = torch.cat(x[0], dim=0)  # augmented list of x
 
