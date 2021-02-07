@@ -175,7 +175,7 @@ def _get_features(P, model, loader, interp=False, imagenet=False, simclr_aug=Non
             last = x  # save the last batch
             x = x_interp  # use interp as current batch
         print(len(x))
-        print(type(x))
+        print(type(x[0]), type(x[1]))
         if imagenet is True:
             x = torch.cat(x[0], dim=0)  # augmented list of x
 
