@@ -65,19 +65,39 @@ def get_features(P, model, img, simclr_aug=None, layers=('simclr', 'shift'), hfl
     return _get_features(P, model, img, simclr_aug, layers=layers, hflip=hflip, device=device)
 
 
-def get_simclr_augmentation():
+# def get_simclr_augmentation():
+#     # Align augmentation
+#     color_jitter = TL.ColorJitterLayer(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.1, p=0.8)
+#     color_gray = TL.RandomColorGrayLayer(p=0.2)
+#
+#     # Transform define #
+#     transform = nn.Sequential(
+#         color_jitter,
+#         color_gray,
+#     )
+#
+#     return transform
+
+
+def get_simclr_augmentation(P, image_size):
+
+    # parameter for resizecrop
+    resize_scale = (P.resize_factor, 1.0) # resize scaling factor
+    if P.resize_fix: # if resize_fix is True, use same scale
+        resize_scale = (P.resize_factor, P.resize_factor)
+
     # Align augmentation
     color_jitter = TL.ColorJitterLayer(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.1, p=0.8)
     color_gray = TL.RandomColorGrayLayer(p=0.2)
+    resize_crop = TL.RandomResizedCropLayer(scale=resize_scale, size=image_size)
 
-    # Transform define #
     transform = nn.Sequential(
         color_jitter,
         color_gray,
+        resize_crop,
     )
 
     return transform
-
 
 def get_scores(P, feats_dict, device):
     # convert to gpu tensor
