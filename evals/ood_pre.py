@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
-
+import pickle
 import models.transform_layers as TL
 from utils.utils import set_random_seed, normalize
 from evals.evals import get_auroc
@@ -66,6 +66,14 @@ def eval_ood_detection(P, model, id_loader, ood_loaders, ood_scores, train_loade
         P.weight_shi = weight_shi
     else:
         raise ValueError()
+
+    axis_path = prefix + f'_axis.pth'
+    weight_sim_path = prefix + f'_weight_sim.pth'
+    weight_shi_path = prefix + f'_weight_shi.pth'
+
+    pickle.dump(P.axis, open(axis_path, "wb+"))
+    pickle.dump(P.weight_sim, open(weight_sim_path, "wb+"))
+    pickle.dump(P.weight_shi, open(weight_shi_path, "wb+"))
 
     print(f'weight_sim:\t' + '\t'.join(map('{:.4f}'.format, P.weight_sim)))
     print(f'weight_shi:\t' + '\t'.join(map('{:.4f}'.format, P.weight_shi)))
@@ -155,7 +163,7 @@ def get_features(P, data_name, model, loader, interp=False, prefix='',
         for layer, feats in _feats_dict.items():
             path = prefix + f'_{data_name}_{layer}.pth'
             torch.save(_feats_dict[layer], path)
-            feats_dict[layer] = feats  # update value
+        feats_dict[layer] = feats  # update value
 
     return feats_dict
 
