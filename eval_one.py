@@ -174,7 +174,8 @@ def main(P):
 
     image_files = glob.glob(os.path.join(P.image_dir, "*"))
     total_scores = []
-    for image_file in image_files:
+    for i, image_file in enumerate(image_files):
+        print(i, len(image_files))
         start = time.time()
         img = Image.open(image_file).convert("RGB")
         img = test_transform(img)
