@@ -212,6 +212,7 @@ def main(P):
         is_skins += sr.is_skin(img)
         print(time.time() - start)
 
+    print(is_skins)
     if P.is_true:
         print('true accuracy thres', P.score_thres, len(image_files) / is_skins)
     else:
