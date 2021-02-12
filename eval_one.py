@@ -187,8 +187,10 @@ def main(P):
     for i in range(40, 100):
         if P.is_true:
             print('true accuracy', i, (total_scores >= i / 100).sum() / len(total_scores))
+            print('true accuracy thres', P.score_thres, (total_scores >= P.score_thres / 100).sum() / len(total_scores))
         else:
             print('false accuracy', i, (total_scores < i/100).sum() / len(total_scores))
+            print('false accuracy thres', P.score_thres, (total_scores < P.score_thres / 100).sum() / len(total_scores))
 
 
 if __name__ == '__main__':
@@ -197,7 +199,7 @@ if __name__ == '__main__':
     parser.add_argument('--load_path', type=str, default=None)
     parser.add_argument('--image_dir', type=str, default=None)
     parser.add_argument('--axis_path', type=str, default=None)
-    parser.add_argument('--score_thres', type=float, default=0.5)
+    parser.add_argument('--score_thres', type=float, default=0.86)
     parser.add_argument('--use_cuda', action='store_true', default=False)
     parser.add_argument('--is_true', action='store_true', default=False)
 
