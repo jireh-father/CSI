@@ -18,7 +18,7 @@ def get_simclr_augmentation(P, image_size):
     resize_crop = TL.RandomResizedCropLayer(scale=resize_scale, size=image_size)
 
     # Transform define #
-    if P.dataset == 'imagenet' or P.dataset == 'skin': # Using RandomResizedCrop at PIL transform
+    if P.dataset == 'imagenet':# or P.dataset == 'skin': # Using RandomResizedCrop at PIL transform
         transform = nn.Sequential(
             color_jitter,
             color_gray,
