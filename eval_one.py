@@ -1,5 +1,4 @@
 import models.classifier as C
-from common.common import parse_args
 import torch
 import torch.nn as nn
 import argparse
@@ -9,6 +8,8 @@ from PIL import Image
 import glob
 import os
 import pickle
+import numpy as np
+import time
 
 
 def _get_features(P, model, img, simclr_aug=None, layers=('simclr', 'shift'), hflip=None, device=None):
@@ -173,11 +174,14 @@ def main(P):
     image_files = glob.glob(os.path.join(P.image_dir, "*"))
     total_scores = []
     for image_file in image_files:
+        start = time.time()
         img = Image.open(image_file).convert("RGB")
         img = test_transform(img)
         features = get_features(P, model, img, **kwargs)
         scores = get_scores(P, features, device).numpy()
+        print(time.time() - start)
         total_scores += list(scores)
+    total_scores = np.array(total_scores)
     accuracy = (total_scores < P.score_thres).sum() / len(total_scores)
     print("accuracy", accuracy)
 
