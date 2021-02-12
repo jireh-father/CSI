@@ -184,8 +184,11 @@ def main(P):
         total_scores += list(scores)
     print(total_scores)
     total_scores = np.array(total_scores)
-    accuracy = (total_scores < P.score_thres).sum() / len(total_scores)
-    print("accuracy", accuracy)
+    for i in range(40, 81):
+        if P.is_true:
+            print('true accuracy', i, (total_scores >= i / 100).sum() / len(total_scores))
+        else:
+            print('true accuracy', i, (total_scores < i/100).sum() / len(total_scores))
 
 
 if __name__ == '__main__':
@@ -196,5 +199,6 @@ if __name__ == '__main__':
     parser.add_argument('--axis_path', type=str, default=None)
     parser.add_argument('--score_thres', type=float, default=0.5)
     parser.add_argument('--use_cuda', action='store_true', default=False)
+    parser.add_argument('--is_true', action='store_true', default=False)
 
     main(parser.parse_args())
