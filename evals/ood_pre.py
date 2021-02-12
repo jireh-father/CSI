@@ -163,7 +163,7 @@ def get_features(P, data_name, model, loader, interp=False, prefix='',
         for layer, feats in _feats_dict.items():
             path = prefix + f'_{data_name}_{layer}.pth'
             torch.save(_feats_dict[layer], path)
-        feats_dict[layer] = feats  # update value
+            feats_dict[layer] = feats  # update value
 
     return feats_dict
 
