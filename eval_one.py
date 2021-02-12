@@ -126,9 +126,7 @@ def normalize(x, dim=1, eps=1e-8):
     return x / (x.norm(dim=dim, keepdim=True) + eps)
 
 
-def main(args):
-    P = parse_args()
-
+def main(P):
     P.load_path = ''
     P.no_strict = False
 
@@ -142,11 +140,11 @@ def main(args):
     P.resize_fix = True
     P.layers = ['simclr', 'shift']
 
-    device = torch.device(f"cuda" if args.use_cuda else "cpu")
+    device = torch.device(f"cuda" if P.use_cuda else "cpu")
 
     P.shift_trans, P.K_shift = C.get_shift_module(P, eval=True)
 
-    P.axis = pickle.load(open(args.axis_path, "rb"))
+    P.axis = pickle.load(open(P.axis_path, "rb"))
     P.weight_sim = [0.007519226599080519, 0.007939391391667395, 0.008598049328054363, 0.015014530319964874]
     P.weight_shi = [0.04909334419285857, 0.052858438675397496, 0.05840793893796496, 0.11790745570891596]
 
@@ -173,7 +171,7 @@ def main(args):
         'device': device
     }
 
-    image_files = glob.glob(os.path.join(args.image_dir, "*"))
+    image_files = glob.glob(os.path.join(P.image_dir, "*"))
     total_scores = []
     for image_file in image_files:
         img = Image.open(image_file).convert("RGB")
@@ -181,7 +179,7 @@ def main(args):
         features = get_features(P, model, img, **kwargs)
         scores = get_scores(P, features, device).numpy()
         total_scores += list(scores)
-    accuracy = (total_scores < args.score_thres).sum() / len(total_scores)
+    accuracy = (total_scores < P.score_thres).sum() / len(total_scores)
     print("accuracy", accuracy)
 
 
