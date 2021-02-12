@@ -180,12 +180,8 @@ def _get_features(P, model, loader, interp=False, imagenet=False, simclr_aug=Non
             x_interp = (x + last) / 2 if i > 0 else x  # omit the first batch, assume batch sizes are equal
             last = x  # save the last batch
             x = x_interp  # use interp as current batch
-        print(0, _.shape, _)
-        print(1, x)
         if imagenet is True:
             x = torch.cat(x[0], dim=0)  # augmented list of x
-        print(2, x.shape)
-        sys.exit()
         x = x.to(device)  # gpu tensor
 
         # compute features in one batch
