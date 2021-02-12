@@ -214,9 +214,9 @@ def main(P):
 
     print(is_skins)
     if P.is_true:
-        print('true accuracy thres', P.score_thres, len(image_files) / is_skins)
+        print('true accuracy thres', P.score_thres, is_skins / len(image_files))
     else:
-        print('false accuracy thres', P.score_thres, 1. - (len(image_files) / is_skins))
+        print('false accuracy thres', P.score_thres, 1. - (is_skins / len(image_files)))
 
 
 if __name__ == '__main__':
