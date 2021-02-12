@@ -183,6 +183,7 @@ def main(P):
         scores = get_scores(P, features, device).numpy()
         print(time.time() - start)
         total_scores += list(scores)
+    print(total_scores)
     total_scores = np.array(total_scores)
     accuracy = (total_scores < P.score_thres).sum() / len(total_scores)
     print("accuracy", accuracy)
