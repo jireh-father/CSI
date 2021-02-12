@@ -185,6 +185,14 @@ def get_dataset(P, dataset, test_only=False, image_size=None, download=False, ev
         train_set = datasets.ImageFolder(train_dir, transform=train_transform)
         test_set = datasets.ImageFolder(test_dir, transform=test_transform)
 
+    elif dataset == 'skin_small':
+        image_size = (32, 32, 3)
+        n_classes = 2
+        train_dir = os.path.join(DATA_PATH, 'skin', 'train')
+        test_dir = os.path.join(DATA_PATH, 'skin', 'test')
+        train_set = datasets.ImageFolder(train_dir, transform=train_transform)
+        test_set = datasets.ImageFolder(test_dir, transform=test_transform)
+
     elif dataset == 'stanford_dogs':
         assert test_only and image_size is not None
         test_dir = os.path.join(DATA_PATH, 'stanford_dogs')
