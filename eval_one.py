@@ -184,7 +184,7 @@ def main(P):
         total_scores += list(scores)
     print(total_scores)
     total_scores = np.array(total_scores)
-    for i in range(40, 81):
+    for i in range(40, 100):
         if P.is_true:
             print('true accuracy', i, (total_scores >= i / 100).sum() / len(total_scores))
         else:
