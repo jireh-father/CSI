@@ -156,7 +156,7 @@ def main(P):
         transforms.ToTensor(),
     ])
 
-    simclr_aug = get_simclr_augmentation().to(device)
+    simclr_aug = get_simclr_augmentation(P, P.image_size).to(device)
 
     model = C.get_classifier(P.model, n_classes=P.n_classes).to(device)
     model = C.get_shift_classifer(model, P.K_shift).to(device)
