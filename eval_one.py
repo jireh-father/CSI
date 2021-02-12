@@ -127,7 +127,6 @@ def normalize(x, dim=1, eps=1e-8):
 
 
 def main(P):
-    P.load_path = ''
     P.no_strict = False
 
     P.shift_trans_type = 'rotation'
@@ -186,6 +185,7 @@ def main(P):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
+    parser.add_argument('--load_path', type=str, default=None)
     parser.add_argument('--image_dir', type=str, default=None)
     parser.add_argument('--axis_path', type=str, default=None)
     parser.add_argument('--score_thres', type=float, default=0.5)
