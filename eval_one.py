@@ -105,7 +105,7 @@ def get_scores(P, feats_dict, device):
     feats_sim = feats_dict['simclr'].to(device)
     feats_shi = feats_dict['shift'].to(device)
     N = feats_sim.size(0)
-
+    print('feats_sim', feats_sim.is_cuda)
     # compute scores
     scores = []
     for f_sim, f_shi in zip(feats_sim, feats_shi):
@@ -114,7 +114,7 @@ def get_scores(P, feats_dict, device):
         score = 0
         for shi in range(P.K_shift):
             # print(f_sim[shi].is_cuda())
-            print(f_sim[shi])
+            print(f_sim[shi].is_cuda)
             score += (f_sim[shi] * P.axis[shi]).sum(dim=1).max().item() * P.weight_sim[shi]
             score += f_shi[shi][:, shi].item() * P.weight_shi[shi]
         score = score / P.K_shift
