@@ -114,6 +114,7 @@ def get_scores(P, feats_dict, device):
         score = 0
         for shi in range(P.K_shift):
             # print(f_sim[shi].is_cuda())
+            print(f_sim[shi])
             score += (f_sim[shi] * P.axis[shi]).sum(dim=1).max().item() * P.weight_sim[shi]
             score += f_shi[shi][:, shi].item() * P.weight_shi[shi]
         score = score / P.K_shift
