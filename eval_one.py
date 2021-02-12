@@ -105,6 +105,7 @@ def get_scores(P, feats_dict, device):
     feats_sim = feats_dict['simclr'].to(device)
     feats_shi = feats_dict['shift'].to(device)
     N = feats_sim.size(0)
+    P.axis = P.axis.to(device)
 
     # compute scores
     scores = []
