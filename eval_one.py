@@ -174,14 +174,18 @@ def main(P):
 
     image_files = glob.glob(os.path.join(P.image_dir, "*"))
     total_scores = []
+    total_features = {'simclr': [], 'shift': []}
     for image_file in image_files:
         start = time.time()
         img = Image.open(image_file).convert("RGB")
         img = test_transform(img)
         features = get_features(P, model, img, **kwargs)
-        scores = get_scores(P, features, device).numpy()
+        total_features['simclr'] += features['simclr']
+        total_features['shift'] += features['shift']
+
         print(time.time() - start)
-        total_scores += list(scores)
+        # total_scores += list(scores)
+    total_scores = get_scores(P, total_features, device).numpy()
     print(total_scores)
     total_scores = np.array(total_scores)
     accuracy = (total_scores < P.score_thres).sum() / len(total_scores)
