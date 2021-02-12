@@ -257,7 +257,7 @@ def get_superclass_list(dataset):
         return CIFAR100_SUPERCLASS
     elif dataset == 'imagenet':
         return IMAGENET_SUPERCLASS
-    elif dataset == 'skin':
+    elif dataset in ['skin', 'skin_small']:
         return list(range(2))
     else:
         raise NotImplementedError()
