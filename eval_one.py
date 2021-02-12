@@ -80,10 +80,9 @@ def get_features(P, model, img, simclr_aug=None, layers=('simclr', 'shift'), hfl
 
 
 def get_simclr_augmentation(P, image_size):
-
     # parameter for resizecrop
-    resize_scale = (P.resize_factor, 1.0) # resize scaling factor
-    if P.resize_fix: # if resize_fix is True, use same scale
+    resize_scale = (P.resize_factor, 1.0)  # resize scaling factor
+    if P.resize_fix:  # if resize_fix is True, use same scale
         resize_scale = (P.resize_factor, P.resize_factor)
 
     # Align augmentation
@@ -98,6 +97,7 @@ def get_simclr_augmentation(P, image_size):
     )
 
     return transform
+
 
 def get_scores(P, feats_dict, device):
     # convert to gpu tensor
@@ -147,8 +147,8 @@ def main(args):
     P.shift_trans, P.K_shift = C.get_shift_module(P, eval=True)
 
     P.axis = pickle.load(open(args.axis_path, "rb"))
-    P.weight_sim = pickle.load(open(args.weight_sim_path, "rb"))
-    P.weight_shi = pickle.load(open(args.weight_shi_path, "rb"))
+    P.weight_sim = [0.007519226599080519, 0.007939391391667395, 0.008598049328054363, 0.015014530319964874]
+    P.weight_shi = [0.04909334419285857, 0.052858438675397496, 0.05840793893796496, 0.11790745570891596]
 
     hflip = TL.HorizontalFlipLayer().to(device)
 
@@ -190,8 +190,6 @@ if __name__ == '__main__':
 
     parser.add_argument('--image_dir', type=str, default=None)
     parser.add_argument('--axis_path', type=str, default=None)
-    parser.add_argument('--weight_sim_path', type=str, default=None)
-    parser.add_argument('--weight_shi_path', type=str, default=None)
     parser.add_argument('--score_thres', type=float, default=0.5)
     parser.add_argument('--use_cuda', action='store_true', default=False)
 
