@@ -173,4 +173,6 @@ if __name__ == '__main__':
     parser.add_argument('--weight_sim_path', type=str, default=None)
     parser.add_argument('--weight_shi_path', type=str, default=None)
     parser.add_argument('--score_thres', type=float, default=0.5)
+    parser.add_argument('--use_cuda', action='store_true', default=False)
+
     main(parser.parse_args())
