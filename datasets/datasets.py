@@ -131,6 +131,8 @@ def get_dataset(P, dataset, test_only=False, image_size=None, download=False, ev
         else:
             train_transform, test_transform = get_transform_imagenet()
     else:
+        if dataset == 'skin_small':
+            image_size = (32, 32, 3)
         train_transform, test_transform = get_transform(image_size=image_size)
 
     if dataset == 'cifar10':
