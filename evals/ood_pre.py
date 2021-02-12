@@ -37,10 +37,10 @@ def eval_ood_detection(P, model, id_loader, ood_loaders, ood_scores, train_loade
         'sample_num': P.ood_samples,
         'layers': P.ood_layer,
     }
-
+    print(kwargs)
     print('Pre-compute global statistics...')
     feats_train = get_features(P, f'{P.dataset}_train', model, train_loader, prefix=prefix, **kwargs)  # (M, T, d)
-
+    print(list(feats_train.keys()))
     P.axis = []
     for f in feats_train['simclr'].chunk(P.K_shift, dim=1):
         axis = f.mean(dim=1)  # (M, d)
