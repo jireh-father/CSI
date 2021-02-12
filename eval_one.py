@@ -188,7 +188,7 @@ def main(P):
         if P.is_true:
             print('true accuracy', i, (total_scores >= i / 100).sum() / len(total_scores))
         else:
-            print('true accuracy', i, (total_scores < i/100).sum() / len(total_scores))
+            print('false accuracy', i, (total_scores < i/100).sum() / len(total_scores))
 
 
 if __name__ == '__main__':
