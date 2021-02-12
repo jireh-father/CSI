@@ -125,10 +125,7 @@ class SkinRecognizer(object):
         # compute augmented features
         with torch.no_grad():
             kwargs = {layer: True for layer in self.layers}  # only forward selected layers
-            import time
-            start = time.time()
             _, output_aux = self.model(x_t, **kwargs)
-            print(time.time()-start)
         # add features in one batch
         for layer in self.layers:
             feats = output_aux[layer].cpu()
