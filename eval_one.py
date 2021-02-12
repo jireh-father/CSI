@@ -187,10 +187,13 @@ def main(P):
     for i in range(40, 100):
         if P.is_true:
             print('true accuracy', i, (total_scores >= i / 100).sum() / len(total_scores))
-            print('true accuracy thres', P.score_thres, (total_scores >= P.score_thres / 100).sum() / len(total_scores))
         else:
             print('false accuracy', i, (total_scores < i/100).sum() / len(total_scores))
-            print('false accuracy thres', P.score_thres, (total_scores < P.score_thres / 100).sum() / len(total_scores))
+
+    if P.is_true:
+        print('true accuracy thres', P.score_thres, (total_scores >= P.score_thres / 100).sum() / len(total_scores))
+    else:
+        print('false accuracy thres', P.score_thres, (total_scores < P.score_thres / 100).sum() / len(total_scores))
 
 
 if __name__ == '__main__':
