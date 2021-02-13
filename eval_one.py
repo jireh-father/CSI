@@ -177,7 +177,10 @@ def main(P):
     for i, image_file in enumerate(image_files):
         print(i, len(image_files))
         start = time.time()
-        img = Image.open(image_file).convert("RGB")
+        try:
+            img = Image.open(image_file).convert("RGB")
+        except:
+            continue
         img = test_transform(img)
         features = get_features(P, model, img, **kwargs)
         scores = get_scores(P, features, device).numpy()
