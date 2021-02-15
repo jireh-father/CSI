@@ -38,7 +38,9 @@ def _get_features(P, model, img, simclr_aug=None, layers=('simclr', 'shift'), hf
     # compute augmented features
     with torch.no_grad():
         kwargs = {layer: True for layer in layers}  # only forward selected layers
+        start = time.time()
         _, output_aux = model(x_t, **kwargs)
+        print(time.time() - start)
     # add features in one batch
     for layer in layers:
         feats = output_aux[layer].cpu()
