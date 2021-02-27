@@ -35,7 +35,6 @@ class SkinRecognizer(object):
         P.shift_trans, P.K_shift = self.get_shift_module(shift_trans_type)
 
         P.axis = pickle.load(open(axis_path, "rb"))
-        print(type(P.axis))
         P.weight_sim = weight_sim
         P.weight_shi = weight_shi
 
@@ -115,30 +114,22 @@ class SkinRecognizer(object):
 
         # compute features in one batch
         feats_batch = {layer: [] for layer in self.layers}  # initialize: empty list
-        print(x.shape)
         if self.params.K_shift > 1:
             x_t = torch.cat([self.params.shift_trans(self.hflip(x), k) for k in range(self.params.K_shift)])
         else:
             x_t = x  # No shifting: SimCLR
-        print(x_t.shape)
         x_t = self.simclr_aug(x_t)
 
         # compute augmented features
         with torch.no_grad():
             kwargs = {layer: True for layer in self.layers}  # only forward selected layers
-            print(x_t.shape)
-            print(kwargs)
             _, output_aux = self.model(x_t, **kwargs)
-        print(output_aux['simclr'].shape)
-        print(output_aux['shift'].shape)
         # add features in one batch
         for layer in self.layers:
             feats = output_aux[layer].cpu()
             feats = torch.unsqueeze(feats, 0)
             feats_batch[layer] = feats
             # feats_batch[layer] += [feats]  # (B, d) cpu tensor
-            print(len(feats_batch[layer]))
-            print(layer, feats_batch[layer][0].shape)
 
         # concatenate features in one batch
         # for key, val in feats_batch.items():
@@ -158,12 +149,8 @@ class SkinRecognizer(object):
         # compute scores
         scores = []
         for f_sim, f_shi in zip(feats_sim, feats_shi):
-            print(f_sim.shape)
-            print(f_shi.shape)
             f_sim = [f.mean(dim=0, keepdim=True) for f in f_sim.chunk(self.params.K_shift)]  # list of (1, d)
             f_shi = [f.mean(dim=0, keepdim=True) for f in f_shi.chunk(self.params.K_shift)]  # list of (1, 4)
-            print(len(f_sim), f_sim[0].shape)
-            print(len(f_shi), f_shi[0].shape)
             score = 0
             for shi in range(self.params.K_shift):
                 # print(f_sim[shi].is_cuda())
@@ -211,14 +198,11 @@ def main(P):
     image_files = glob.glob(os.path.join(P.image_dir, "*"))
     is_skins = 0
     for i, image_file in enumerate(image_files):
-        print(i, len(image_files))
         start = time.time()
         img = cv2.imread(image_file)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         is_skins += sr.is_skin(img)
-        print(time.time() - start)
 
-    print(is_skins)
     if P.is_true:
         print('true accuracy thres', P.score_thres, is_skins / len(image_files))
     else:

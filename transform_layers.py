@@ -132,13 +132,9 @@ class RandomResizedCropLayer(nn.Module):
     def _sample_latent(self, inputs):
 
         _device = inputs.device
-        print(type(inputs))
         N, _, width, height = inputs.shape
         # N * 10 trial
         area = width * height
-        print(type(area))
-        print("debug", type(N), type(width), type(height), height)
-        print(type(self.scale))
         target_area = np.random.uniform(*self.scale, N * 10) * area
         log_ratio = (math.log(self.ratio[0]), math.log(self.ratio[1]))
         aspect_ratio = np.exp(np.random.uniform(*log_ratio, N * 10))
@@ -157,8 +153,6 @@ class RandomResizedCropLayer(nn.Module):
             w = np.concatenate([w, np.ones(N - cond_len) * width])
             h = np.concatenate([h, np.ones(N - cond_len) * height])
 
-        print('debug', w - width, width - w + 1, np.random.randint(w - width, width - w + 1))
-        print('debug', type(w - width), type(width - w + 1), np.random.randint(w - width, width - w + 1))
         w_bias = np.random.randint(w - width, width - w + 1) / width
         h_bias = np.random.randint(h - height, height - h + 1) / height
         w = w / width
@@ -235,17 +229,12 @@ class RandomResizedCropLayerTensor(nn.Module):
     def _sample_latent(self, inputs):
 
         _device = inputs.device
-        print(type(inputs))
         N, _, width, height = inputs.shape
         height = height.type(torch.float)
         width = width.type(torch.float)
         N = N.type(torch.float)
         # N * 10 trial
         area = width * height
-        print(type(area), area.type())
-        print("debug", type(N), type(width), type(height), N.type(), width.type(), height.type())
-        print(type(self.scale), self.scale.type())
-        print(torch.FloatTensor(N * 10))
         target_area = torch.FloatTensor(N * 10).uniform_(self.scale[0], self.scale[1]) * area
         # target_area = np.random.uniform(*self.scale, N * 10) * area
         # log_ratio = (math.log(self.ratio[0]), math.log(self.ratio[1]))
@@ -270,8 +259,6 @@ class RandomResizedCropLayerTensor(nn.Module):
             # w = np.concatenate([w, np.ones(N - cond_len) * width])
             # h = np.concatenate([h, np.ones(N - cond_len) * height])
 
-        print(type(w), type(width), type(h), type(height))
-        print(width - w.numpy() + 1, type(width - w.numpy() + 1))
         w_bias = torch.randint(w.numpy() - width, int(width - w.numpy() + 1)) / width
         h_bias = torch.randint(h.numpy() - height, height - h.numpy() + 1) / height
         w_bias = np.random.randint(w - width, width - w + 1) / width
@@ -282,7 +269,6 @@ class RandomResizedCropLayerTensor(nn.Module):
         whbias = torch.column_stack([w, h, w_bias, h_bias])
         # whbias = np.column_stack([w, h, w_bias, h_bias])
         # whbias = torch.tensor(whbias, device=_device)
-        print('whbias', whbias)
         return whbias
 
 
