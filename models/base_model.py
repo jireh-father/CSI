@@ -50,12 +50,11 @@ class BaseModel(nn.Module, metaclass=ABCMeta):
 
     def forward_(self, inputs):
         inputs = torch.cat([self.shift_trans(self.hflip(inputs), k) for k in range(4)])
+        # inputs = torch.cat([self.shift_trans(inputs, k) for k in range(4)])
         inputs = self.simclr_aug(inputs)
         _aux = {}
         _return_aux = False
-
         features = self.penultimate(inputs)
-
         _aux['simclr'] = self.simclr_layer(features)
 
         _aux['shift'] = self.shift_cls_layer(features)
