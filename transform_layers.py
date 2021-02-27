@@ -87,13 +87,13 @@ class RandomResizedCropLayer(nn.Module):
         N = inputs.size(0)
         _theta = self._eye.repeat(N, 1, 1)
 
-        if whbias is None:
-            whbias = self._sample_latent(inputs)
-
-        _theta[:, 0, 0] = whbias[:, 0]
-        _theta[:, 1, 1] = whbias[:, 1]
-        _theta[:, 0, 2] = whbias[:, 2]
-        _theta[:, 1, 2] = whbias[:, 3]
+        # if whbias is None:
+        #     whbias = self._sample_latent(inputs)
+        #
+        # _theta[:, 0, 0] = whbias[:, 0]
+        # _theta[:, 1, 1] = whbias[:, 1]
+        # _theta[:, 0, 2] = whbias[:, 2]
+        # _theta[:, 1, 2] = whbias[:, 3]
 
         grid = F.affine_grid(_theta, inputs.size(), **kwargs).to(_device)
         output = F.grid_sample(inputs, grid, padding_mode='reflection', **kwargs)
@@ -393,7 +393,8 @@ class HorizontalFlipLayer(nn.Module):
 
         N = inputs.size(0)
         _theta = self._eye.repeat(N, 1, 1)
-        r_sign = torch.bernoulli(torch.ones(N, device=_device) * 0.5) * 2 - 1
+        # r_sign = torch.bernoulli(torch.ones(N, device=_device) * 0.5) * 2 - 1
+        r_sign = torch.tensor([-1.], dtype=torch.float)
         _theta[:, 0, 0] = r_sign
         grid = F.affine_grid(_theta, inputs.size(), **kwargs).to(_device)
         inputs = F.grid_sample(inputs, grid, padding_mode='reflection', **kwargs)
@@ -418,9 +419,9 @@ class RandomColorGrayLayer(nn.Module):
         gray = torch.cat([l, l, l], dim=1)
 
         if aug_index is None:
-            _prob = inputs.new_full((inputs.size(0),), self.prob)
-            _mask = torch.bernoulli(_prob).view(-1, 1, 1, 1)
-
+            # _prob = inputs.new_full((inputs.size(0),), self.prob)
+            # _mask = torch.bernoulli(_prob).view(-1, 1, 1, 1)
+            _mask = torch.tensor([[[[0.]]], [[[0.]]], [[[0.]]], [[[0.]]]], dtype=torch.float)
             gray = inputs * (1 - _mask) + gray * _mask
 
         return gray
@@ -478,10 +479,11 @@ class ColorJitterLayer(nn.Module):
 
     def transform(self, inputs):
         # Shuffle transform
-        if np.random.rand() > 0.5:
-            transforms = [self.adjust_contrast, self.adjust_hsv]
-        else:
-            transforms = [self.adjust_hsv, self.adjust_contrast]
+        # if np.random.rand() > 0.5:
+        #     transforms = [self.adjust_contrast, self.adjust_hsv]
+        # else:
+        #     transforms = [self.adjust_hsv, self.adjust_contrast]
+        transforms = [self.adjust_contrast, self.adjust_hsv]
 
         for t in transforms:
             inputs = t(inputs)
@@ -490,7 +492,9 @@ class ColorJitterLayer(nn.Module):
 
     def forward(self, inputs):
         _prob = inputs.new_full((inputs.size(0),), self.prob)
-        _mask = torch.bernoulli(_prob).view(-1, 1, 1, 1)
+        # _mask = torch.bernoulli(_prob).view(-1, 1, 1, 1)
+        _mask = torch.tensor([[[[0.]]], [[[0.]]], [[[0.]]], [[[0.]]]], dtype=torch.float)
+        # print('_mask', _mask, _mask.type())
         return inputs * (1 - _mask) + self.transform(inputs) * _mask
 
 
