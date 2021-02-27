@@ -1,5 +1,6 @@
 from abc import *
 import torch.nn as nn
+import torch
 
 
 class BaseModel(nn.Module, metaclass=ABCMeta):
@@ -46,3 +47,24 @@ class BaseModel(nn.Module, metaclass=ABCMeta):
             return output, _aux
 
         return output
+
+    def forward_(self, inputs):
+        print(inputs.shape)
+        inputs = torch.cat([self.shift_trans(self.hflip(inputs), k) for k in range(4)])
+        print(inputs.shape)
+        inputs = self.simclr_aug(inputs)
+        _aux = {}
+        _return_aux = False
+
+        features = self.penultimate(inputs)
+
+        _aux['simclr'] = self.simclr_layer(features)
+
+        _aux['shift'] = self.shift_cls_layer(features)
+
+        return _aux['simclr']
+
+    def set_transforms(self, hflip, shift_transform, simclr_aug):
+        self.hflip = hflip
+        self.shift_trans = shift_transform
+        self.simclr_aug = simclr_aug
