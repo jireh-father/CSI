@@ -154,6 +154,7 @@ class RandomResizedCropLayer(nn.Module):
             w = np.concatenate([w, np.ones(N - cond_len) * width])
             h = np.concatenate([h, np.ones(N - cond_len) * height])
 
+        print(w, width)
         w_bias = np.random.randint(w - width, width - w + 1) / width
         h_bias = np.random.randint(h - height, height - h + 1) / height
         w = w / width
