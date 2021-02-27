@@ -35,6 +35,7 @@ class SkinRecognizer(object):
         P.shift_trans, P.K_shift = self.get_shift_module(shift_trans_type)
 
         P.axis = pickle.load(open(axis_path, "rb"))
+        print(type(P.axis))
         P.weight_sim = weight_sim
         P.weight_shi = weight_shi
 
@@ -115,16 +116,19 @@ class SkinRecognizer(object):
 
         # compute features in one batch
         feats_batch = {layer: [] for layer in self.layers}  # initialize: empty list
-
+        print(x.shape)
         if self.params.K_shift > 1:
             x_t = torch.cat([self.params.shift_trans(self.hflip(x), k) for k in range(self.params.K_shift)])
         else:
             x_t = x  # No shifting: SimCLR
+        print(x_t.shape)
         x_t = self.simclr_aug(x_t)
 
         # compute augmented features
         with torch.no_grad():
             kwargs = {layer: True for layer in self.layers}  # only forward selected layers
+            print(x_t.shape)
+            print(kwargs)
             _, output_aux = self.model(x_t, **kwargs)
         # add features in one batch
         for layer in self.layers:
