@@ -87,6 +87,109 @@ class RandomResizedCropLayer(nn.Module):
         N = inputs.size(0)
         _theta = self._eye.repeat(N, 1, 1)
 
+        # if whbias is None:
+        #     whbias = self._sample_latent(inputs)
+        #
+        # _theta[:, 0, 0] = whbias[:, 0]
+        # _theta[:, 1, 1] = whbias[:, 1]
+        # _theta[:, 0, 2] = whbias[:, 2]
+        # _theta[:, 1, 2] = whbias[:, 3]
+
+        grid = F.affine_grid(_theta, inputs.size(), **kwargs).to(_device)
+        output = F.grid_sample(inputs, grid, padding_mode='reflection', **kwargs)
+
+        if self.size is not None:
+            output = F.adaptive_avg_pool2d(output, self.size)
+
+        return output
+
+    def _clamp(self, whbias):
+
+        w = whbias[:, 0]
+        h = whbias[:, 1]
+        w_bias = whbias[:, 2]
+        h_bias = whbias[:, 3]
+
+        # Clamp with scale
+        w = torch.clamp(w, *self.scale)
+        h = torch.clamp(h, *self.scale)
+
+        # Clamp with ratio
+        w = self.ratio[0] * h + torch.relu(w - self.ratio[0] * h)
+        w = self.ratio[1] * h - torch.relu(self.ratio[1] * h - w)
+
+        # Clamp with bias range: w_bias \in (w - 1, 1 - w), h_bias \in (h - 1, 1 - h)
+        w_bias = w - 1 + torch.relu(w_bias - w + 1)
+        w_bias = 1 - w - torch.relu(1 - w - w_bias)
+
+        h_bias = h - 1 + torch.relu(h_bias - h + 1)
+        h_bias = 1 - h - torch.relu(1 - h - h_bias)
+
+        whbias = torch.stack([w, h, w_bias, h_bias], dim=0).t()
+
+        return whbias
+
+    def _sample_latent(self, inputs):
+
+        _device = inputs.device
+        print(type(inputs))
+        N, _, width, height = inputs.shape
+        # N * 10 trial
+        area = width * height
+        print(type(area))
+        print("debug", type(N), type(width), type(height), height)
+        print(type(self.scale))
+        target_area = np.random.uniform(*self.scale, N * 10) * area
+        log_ratio = (math.log(self.ratio[0]), math.log(self.ratio[1]))
+        aspect_ratio = np.exp(np.random.uniform(*log_ratio, N * 10))
+
+        # If doesn't satisfy ratio condition, then do central crop
+        w = np.round(np.sqrt(target_area * aspect_ratio))
+        h = np.round(np.sqrt(target_area / aspect_ratio))
+        cond = (0 < w) * (w <= width) * (0 < h) * (h <= height)
+        w = w[cond]
+        h = h[cond]
+        cond_len = w.shape[0]
+        if cond_len >= N:
+            w = w[:N]
+            h = h[:N]
+        else:
+            w = np.concatenate([w, np.ones(N - cond_len) * width])
+            h = np.concatenate([h, np.ones(N - cond_len) * height])
+
+        print('debug', w - width, width - w + 1, np.random.randint(w - width, width - w + 1))
+        print('debug', type(w - width), type(width - w + 1), np.random.randint(w - width, width - w + 1))
+        w_bias = np.random.randint(w - width, width - w + 1) / width
+        h_bias = np.random.randint(h - height, height - h + 1) / height
+        w = w / width
+        h = h / height
+
+        whbias = np.column_stack([w, h, w_bias, h_bias])
+        whbias = torch.tensor(whbias, device=_device)
+        return whbias
+
+
+class RandomResizedCropLayerTensor(nn.Module):
+    def __init__(self, size=None, scale=(0.08, 1.0), ratio=(3. / 4., 4. / 3.)):
+        '''
+            Inception Crop
+            size (tuple): size of fowarding image (C, W, H)
+            scale (tuple): range of size of the origin size cropped
+            ratio (tuple): range of aspect ratio of the origin aspect ratio cropped
+        '''
+        super(RandomResizedCropLayerTensor, self).__init__()
+
+        _eye = torch.eye(2, 3)
+        self.size = size
+        self.register_buffer('_eye', _eye)
+        self.scale = torch.tensor(scale, dtype=torch.float)
+        self.ratio = torch.tensor(ratio, dtype=torch.float)
+
+    def forward(self, inputs, whbias=None):
+        _device = inputs.device
+        N = inputs.size(0)
+        _theta = self._eye.repeat(N, 1, 1)
+
         if whbias is None:
             whbias = self._sample_latent(inputs)
 
@@ -132,17 +235,28 @@ class RandomResizedCropLayer(nn.Module):
     def _sample_latent(self, inputs):
 
         _device = inputs.device
+        print(type(inputs))
         N, _, width, height = inputs.shape
-
+        height = height.type(torch.float)
+        width = width.type(torch.float)
+        N = N.type(torch.float)
         # N * 10 trial
         area = width * height
-        target_area = np.random.uniform(*self.scale, N * 10) * area
-        log_ratio = (math.log(self.ratio[0]), math.log(self.ratio[1]))
-        aspect_ratio = np.exp(np.random.uniform(*log_ratio, N * 10))
+        print(type(area), area.type())
+        print("debug", type(N), type(width), type(height), N.type(), width.type(), height.type())
+        print(type(self.scale), self.scale.type())
+        print(torch.FloatTensor(N * 10))
+        target_area = torch.FloatTensor(N * 10).uniform_(self.scale[0], self.scale[1]) * area
+        # target_area = np.random.uniform(*self.scale, N * 10) * area
+        # log_ratio = (math.log(self.ratio[0]), math.log(self.ratio[1]))
+        aspect_ratio = torch.exp(torch.FloatTensor(N * 10).uniform_(torch.log(self.ratio[0]), torch.log(self.ratio[1])))
+        # aspect_ratio = np.exp(np.random.uniform(*log_ratio, N * 10))
 
         # If doesn't satisfy ratio condition, then do central crop
-        w = np.round(np.sqrt(target_area * aspect_ratio))
-        h = np.round(np.sqrt(target_area / aspect_ratio))
+        w = torch.round(torch.sqrt(target_area * aspect_ratio))
+        h = torch.round(torch.sqrt(target_area / aspect_ratio))
+        # w = np.round(np.sqrt(target_area * aspect_ratio))
+        # h = np.round(np.sqrt(target_area / aspect_ratio))
         cond = (0 < w) * (w <= width) * (0 < h) * (h <= height)
         w = w[cond]
         h = h[cond]
@@ -151,18 +265,24 @@ class RandomResizedCropLayer(nn.Module):
             w = w[:N]
             h = h[:N]
         else:
-            w = np.concatenate([w, np.ones(N - cond_len) * width])
-            h = np.concatenate([h, np.ones(N - cond_len) * height])
+            w = torch.cat([w, torch.ones(N - cond_len) * width])
+            h = torch.cat([h, torch.ones(N - cond_len) * height])
+            # w = np.concatenate([w, np.ones(N - cond_len) * width])
+            # h = np.concatenate([h, np.ones(N - cond_len) * height])
 
-        print(w, width)
+        print(type(w), type(width), type(h), type(height))
+        print(width - w.numpy() + 1, type(width - w.numpy() + 1))
+        w_bias = torch.randint(w.numpy() - width, int(width - w.numpy() + 1)) / width
+        h_bias = torch.randint(h.numpy() - height, height - h.numpy() + 1) / height
         w_bias = np.random.randint(w - width, width - w + 1) / width
-        h_bias = np.random.randint(h - height, height - h + 1) / height
+        # h_bias = np.random.randint(h - height, height - h + 1) / height
         w = w / width
         h = h / height
 
-        whbias = np.column_stack([w, h, w_bias, h_bias])
-        whbias = torch.tensor(whbias, device=_device)
-
+        whbias = torch.column_stack([w, h, w_bias, h_bias])
+        # whbias = np.column_stack([w, h, w_bias, h_bias])
+        # whbias = torch.tensor(whbias, device=_device)
+        print('whbias', whbias)
         return whbias
 
 
@@ -200,7 +320,7 @@ class HorizontalFlipRandomCrop(nn.Module):
 
 
 class Rotation(nn.Module):
-    def __init__(self, max_range = 4):
+    def __init__(self, max_range=4):
         super(Rotation, self).__init__()
         self.max_range = max_range
         self.prob = 0.5
@@ -217,7 +337,7 @@ class Rotation(nn.Module):
 
             _prob = input.new_full((input.size(0),), self.prob)
             _mask = torch.bernoulli(_prob).view(-1, 1, 1, 1)
-            output = _mask * input + (1-_mask) * output
+            output = _mask * input + (1 - _mask) * output
 
         else:
             aug_index = aug_index % self.max_range
@@ -227,7 +347,7 @@ class Rotation(nn.Module):
 
 
 class CutPerm(nn.Module):
-    def __init__(self, max_range = 4):
+    def __init__(self, max_range=4):
         super(CutPerm, self).__init__()
         self.max_range = max_range
         self.prob = 0.5
@@ -426,4 +546,3 @@ class NormalizeLayer(nn.Module):
 
     def forward(self, inputs):
         return (inputs - 0.5) / 0.5
-
