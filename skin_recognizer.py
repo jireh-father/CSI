@@ -136,18 +136,21 @@ class SkinRecognizer(object):
         for layer in self.layers:
             feats = output_aux[layer].cpu()
             feats_batch[layer] += [feats]  # (B, d) cpu tensor
+            print(layer, feats_batch[layer].shape)
 
         # concatenate features in one batch
         for key, val in feats_batch.items():
             feats_batch[key] = torch.stack(val, dim=0)  # (B, T, d)
-
+            print(key, feats_batch[key].shape)
         # add features in full dataset
         for layer in self.layers:
             feats_all[layer] += [feats_batch[layer]]
+            print(layer, feats_all[layer].shape)
 
         # concatenate features in full dataset
         for key, val in feats_all.items():
             feats_all[key] = torch.cat(val, dim=0)  # (N, T, d)
+            print(key, feats_all[key].shape)
 
         return feats_all
 
