@@ -151,7 +151,7 @@ class SkinRecognizer(object):
         for key, val in feats_all.items():
             feats_all[key] = torch.cat(val, dim=0)  # (N, T, d)
             print(key, feats_all[key].shape)
-
+        sys.exit()
         return feats_all
 
     def get_features(self, img):
