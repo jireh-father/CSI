@@ -130,6 +130,8 @@ class SkinRecognizer(object):
             print(x_t.shape)
             print(kwargs)
             _, output_aux = self.model(x_t, **kwargs)
+        print(output_aux['simclr'].shape)
+        print(output_aux['shift'].shape)
         # add features in one batch
         for layer in self.layers:
             feats = output_aux[layer].cpu()
