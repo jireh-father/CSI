@@ -184,13 +184,13 @@ class RandomResizedCropLayerTensor(nn.Module):
         N = inputs.size(0)
         _theta = self._eye.repeat(N, 1, 1)
 
-        if whbias is None:
-            whbias = self._sample_latent(inputs)
-
-        _theta[:, 0, 0] = whbias[:, 0]
-        _theta[:, 1, 1] = whbias[:, 1]
-        _theta[:, 0, 2] = whbias[:, 2]
-        _theta[:, 1, 2] = whbias[:, 3]
+        # if whbias is None:
+        #     whbias = self._sample_latent(inputs)
+        #
+        # _theta[:, 0, 0] = whbias[:, 0]
+        # _theta[:, 1, 1] = whbias[:, 1]
+        # _theta[:, 0, 2] = whbias[:, 2]
+        # _theta[:, 1, 2] = whbias[:, 3]
 
         grid = F.affine_grid(_theta, inputs.size(), **kwargs).to(_device)
         output = F.grid_sample(inputs, grid, padding_mode='reflection', **kwargs)
