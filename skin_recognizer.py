@@ -204,7 +204,7 @@ class SkinRecognizer(object):
 
 
 def main(P):
-    sr = SkinRecognizer(P.load_path, P.axis_path, use_cuda=P.use_cuda, score_thres=P.score_thres, shift_trans_type='other')
+    sr = SkinRecognizer(P.load_path, P.axis_path, use_cuda=P.use_cuda, score_thres=P.score_thres)
 
     image_files = glob.glob(os.path.join(P.image_dir, "*"))
     is_skins = 0
