@@ -163,7 +163,7 @@ class SkinRecognizer(object):
             print(len(f_sim), f_sim[0].shape)
             print(len(f_shi), f_shi[0].shape)
             score = 0
-            for shi in range(self.params.K_shift):
+            for shi in range(1):#self.params.K_shift):
                 # print(f_sim[shi].is_cuda())
                 tmp_axis = self.params.axis[shi].to(self.device)
                 score += (f_sim[shi] * tmp_axis).sum(dim=1).max().item() * self.params.weight_sim[shi]
@@ -204,7 +204,7 @@ class SkinRecognizer(object):
 
 
 def main(P):
-    sr = SkinRecognizer(P.load_path, P.axis_path, use_cuda=P.use_cuda, score_thres=P.score_thres, shift_trans_type='te')
+    sr = SkinRecognizer(P.load_path, P.axis_path, use_cuda=P.use_cuda, score_thres=P.score_thres)
 
     image_files = glob.glob(os.path.join(P.image_dir, "*"))
     is_skins = 0
