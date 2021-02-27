@@ -156,6 +156,8 @@ class SkinRecognizer(object):
         # compute scores
         scores = []
         for f_sim, f_shi in zip(feats_sim, feats_shi):
+            print(f_sim.shape)
+            print(f_shi.shape)
             f_sim = [f.mean(dim=0, keepdim=True) for f in f_sim.chunk(self.params.K_shift)]  # list of (1, d)
             f_shi = [f.mean(dim=0, keepdim=True) for f in f_shi.chunk(self.params.K_shift)]  # list of (1, 4)
             print(len(f_sim), f_sim[0].shape)
