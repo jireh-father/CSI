@@ -109,7 +109,6 @@ class SkinRecognizer(object):
 
         # compute features in full dataset
         self.model.eval()
-        feats_all = {layer: [] for layer in self.layers}  # initialize: empty list
 
         x = torch.unsqueeze(img, 0)
         x = x.to(self.device)  # gpu tensor
@@ -144,17 +143,7 @@ class SkinRecognizer(object):
             feats_batch[key] = torch.stack(val, dim=0)  # (B, T, d)
             print(key, feats_batch[key].shape)
         # add features in full dataset
-        for layer in self.layers:
-            feats_all[layer] += [feats_batch[layer]]
-            print(len(feats_all[layer]))
-            print(layer, feats_all[layer][0].shape)
-
-        # concatenate features in full dataset
-        for key, val in feats_all.items():
-            feats_all[key] = torch.cat(val, dim=0)  # (N, T, d)
-            print(key, feats_all[key].shape)
-        sys.exit()
-        return feats_all
+        return feats_batch
 
     def get_features(self, img):
         return self._get_features(img)
@@ -169,6 +158,9 @@ class SkinRecognizer(object):
         for f_sim, f_shi in zip(feats_sim, feats_shi):
             f_sim = [f.mean(dim=0, keepdim=True) for f in f_sim.chunk(self.params.K_shift)]  # list of (1, d)
             f_shi = [f.mean(dim=0, keepdim=True) for f in f_shi.chunk(self.params.K_shift)]  # list of (1, 4)
+            print(len(f_sim), f_sim[0].shape)
+            print(len(f_shi), f_shi[0].shape)
+            sys.exit()
             score = 0
             for shi in range(self.params.K_shift):
                 # print(f_sim[shi].is_cuda())
