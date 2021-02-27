@@ -188,7 +188,7 @@ class SkinRecognizer(object):
         img = self.test_transform(img)
         features = self.get_features(img)
         scores = self.get_scores(features).numpy()
-
+        print(scores)
         return (scores >= self.score_thres).sum()
 
 
