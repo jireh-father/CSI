@@ -134,14 +134,16 @@ class SkinRecognizer(object):
         # add features in one batch
         for layer in self.layers:
             feats = output_aux[layer].cpu()
-            feats_batch[layer] += [feats]  # (B, d) cpu tensor
+            feats = torch.unsqueeze(feats, 0)
+            feats_batch[layer] = feats
+            # feats_batch[layer] += [feats]  # (B, d) cpu tensor
             print(len(feats_batch[layer]))
             print(layer, feats_batch[layer][0].shape)
 
         # concatenate features in one batch
-        for key, val in feats_batch.items():
-            feats_batch[key] = torch.stack(val, dim=0)  # (B, T, d)
-            print(key, feats_batch[key].shape)
+        # for key, val in feats_batch.items():
+        #     feats_batch[key] = torch.stack(val, dim=0)  # (B, T, d)
+        #     print(key, feats_batch[key].shape)
         # add features in full dataset
         return feats_batch
 
@@ -163,7 +165,7 @@ class SkinRecognizer(object):
             print(len(f_sim), f_sim[0].shape)
             print(len(f_shi), f_shi[0].shape)
             score = 0
-            for shi in range(1):#self.params.K_shift):
+            for shi in range(self.params.K_shift):
                 # print(f_sim[shi].is_cuda())
                 tmp_axis = self.params.axis[shi].to(self.device)
                 score += (f_sim[shi] * tmp_axis).sum(dim=1).max().item() * self.params.weight_sim[shi]
