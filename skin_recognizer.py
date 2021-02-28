@@ -44,7 +44,7 @@ class SkinRecognizer(object):
 
         self.test_transform = transforms.Compose([
             # transforms.Resize(256),
-            transforms.Resize(256),
+            transforms.Resize(224),
             # transforms.CenterCrop(224),
             transforms.ToTensor(),
         ])
@@ -157,7 +157,7 @@ class SkinRecognizer(object):
                 # print(f_sim[shi].is_cuda())
                 tmp_axis = self.params.axis[shi].to(self.device)
                 score += (f_sim[shi] * tmp_axis).sum(dim=1).max().item() * self.params.weight_sim[shi]
-                score += f_shi[shi][:, shi].item() * self.params.weight_shi[shi]
+                # score += f_shi[shi][:, shi].item() * self.params.weight_shi[shi]
             score = score / self.params.K_shift
             scores.append(score)
         scores = torch.tensor(scores)
