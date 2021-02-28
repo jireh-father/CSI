@@ -153,12 +153,12 @@ class SkinRecognizer(object):
             f_sim = [f.mean(dim=0, keepdim=True) for f in f_sim.chunk(self.params.K_shift)]  # list of (1, d)
             f_shi = [f.mean(dim=0, keepdim=True) for f in f_shi.chunk(self.params.K_shift)]  # list of (1, 4)
             score = 0
-            for shi in range(self.params.K_shift):
+            for shi in range(1):#self.params.K_shift):
                 # print(f_sim[shi].is_cuda())
                 tmp_axis = self.params.axis[shi].to(self.device)
                 score += (f_sim[shi] * tmp_axis).sum(dim=1).max().item() * self.params.weight_sim[shi]
                 # score += f_shi[shi][:, shi].item() * self.params.weight_shi[shi]
-            score = score / self.params.K_shift
+            score = score / 1#self.params.K_shift
             scores.append(score)
         scores = torch.tensor(scores)
 

@@ -56,8 +56,7 @@ class BaseModel(nn.Module, metaclass=ABCMeta):
             inputs = self.simclr_aug(inputs)
             features = self.penultimate(inputs)
             f_sim = self.simclr_layer(features)
-            f_shi = self.shift_cls_layer(features)
-            print(f_sim.shape, f_shi.shape)
+            # f_shi = self.shift_cls_layer(features)
             # print(f_sim.shape)
             # print(f_sim.chunk(4))
             # print(self.axis.shape)
@@ -68,7 +67,8 @@ class BaseModel(nn.Module, metaclass=ABCMeta):
             # print((f_sim * self.axis).sum(dim=2).shape)
             # print((f_sim * self.axis).sum(dim=2).max().shape)
             # print((f_sim * self.axis).sum(dim=2).max(), (f_sim * self.axis).sum(dim=2).max(dim=1))
-            return (f_sim * self.axis).sum(dim=2)[0]
+
+            return (f_sim * self.axis).sum(dim=2)
             # return (f_sim * self.axis).sum(dim=2).max(dim=1)
             # score = ((f_sim * self.axis).sum(dim=2).max(dim=1).values * self.weight_sim).sum()
             # score = f_shi[0][0]
@@ -102,6 +102,6 @@ class BaseModel(nn.Module, metaclass=ABCMeta):
         self.weight_sim = torch.tensor(
             [0.007519226599080519, 0.007939391391667395, 0.008598049328054363, 0.015014530319964874], dtype=torch.float,
             requires_grad=False)
-        self.weight_shi = torch.tensor(
-            [0.04909334419285857, 0.052858438675397496, 0.05840793893796496, 0.11790745570891596], dtype=torch.float,
-            requires_grad=False)
+        # self.weight_shi = torch.tensor(
+        #     [0.04909334419285857, 0.052858438675397496, 0.05840793893796496, 0.11790745570891596], dtype=torch.float,
+        #     requires_grad=False)
