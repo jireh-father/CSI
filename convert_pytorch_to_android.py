@@ -67,5 +67,5 @@ if __name__ == '__main__':
     parser.add_argument('--model_path', type=str)
     parser.add_argument('--axis_path', type=str)
 
-    parser.add_argument('--output_path', type=int, default=2)
+    parser.add_argument('--output_path', type=str)
     main(parser.parse_args())
