@@ -87,13 +87,13 @@ class RandomResizedCropLayer(nn.Module):
         N = inputs.size(0)
         _theta = self._eye.repeat(N, 1, 1)
 
-        if whbias is None:
-            whbias = self._sample_latent(inputs)
-
-        _theta[:, 0, 0] = whbias[:, 0]
-        _theta[:, 1, 1] = whbias[:, 1]
-        _theta[:, 0, 2] = whbias[:, 2]
-        _theta[:, 1, 2] = whbias[:, 3]
+        # if whbias is None:
+        #     whbias = self._sample_latent(inputs)
+        #
+        # _theta[:, 0, 0] = whbias[:, 0]
+        # _theta[:, 1, 1] = whbias[:, 1]
+        # _theta[:, 0, 2] = whbias[:, 2]
+        # _theta[:, 1, 2] = whbias[:, 3]
 
         grid = F.affine_grid(_theta, inputs.size(), **kwargs).to(_device)
         output = F.grid_sample(inputs, grid, padding_mode='reflection', **kwargs)
@@ -133,7 +133,6 @@ class RandomResizedCropLayer(nn.Module):
 
         _device = inputs.device
         N, _, width, height = inputs.shape
-
         # N * 10 trial
         area = width * height
         target_area = np.random.uniform(*self.scale, N * 10) * area
@@ -161,7 +160,115 @@ class RandomResizedCropLayer(nn.Module):
 
         whbias = np.column_stack([w, h, w_bias, h_bias])
         whbias = torch.tensor(whbias, device=_device)
+        return whbias
 
+
+class RandomResizedCropLayerTensor(nn.Module):
+    def __init__(self, size=None, scale=(0.08, 1.0), ratio=(3. / 4., 4. / 3.)):
+        '''
+            Inception Crop
+            size (tuple): size of fowarding image (C, W, H)
+            scale (tuple): range of size of the origin size cropped
+            ratio (tuple): range of aspect ratio of the origin aspect ratio cropped
+        '''
+        super(RandomResizedCropLayerTensor, self).__init__()
+
+        _eye = torch.eye(2, 3)
+        self.size = size
+        self.register_buffer('_eye', _eye)
+        self.scale = torch.tensor(scale, dtype=torch.float)
+        self.ratio = torch.tensor(ratio, dtype=torch.float)
+
+    def forward(self, inputs, whbias=None):
+        _device = inputs.device
+        N = inputs.size(0)
+        _theta = self._eye.repeat(N, 1, 1)
+
+        # if whbias is None:
+        #     whbias = self._sample_latent(inputs)
+        #
+        # _theta[:, 0, 0] = whbias[:, 0]
+        # _theta[:, 1, 1] = whbias[:, 1]
+        # _theta[:, 0, 2] = whbias[:, 2]
+        # _theta[:, 1, 2] = whbias[:, 3]
+
+        grid = F.affine_grid(_theta, inputs.size(), **kwargs).to(_device)
+        output = F.grid_sample(inputs, grid, padding_mode='reflection', **kwargs)
+
+        if self.size is not None:
+            output = F.adaptive_avg_pool2d(output, self.size)
+
+        return output
+
+    def _clamp(self, whbias):
+
+        w = whbias[:, 0]
+        h = whbias[:, 1]
+        w_bias = whbias[:, 2]
+        h_bias = whbias[:, 3]
+
+        # Clamp with scale
+        w = torch.clamp(w, *self.scale)
+        h = torch.clamp(h, *self.scale)
+
+        # Clamp with ratio
+        w = self.ratio[0] * h + torch.relu(w - self.ratio[0] * h)
+        w = self.ratio[1] * h - torch.relu(self.ratio[1] * h - w)
+
+        # Clamp with bias range: w_bias \in (w - 1, 1 - w), h_bias \in (h - 1, 1 - h)
+        w_bias = w - 1 + torch.relu(w_bias - w + 1)
+        w_bias = 1 - w - torch.relu(1 - w - w_bias)
+
+        h_bias = h - 1 + torch.relu(h_bias - h + 1)
+        h_bias = 1 - h - torch.relu(1 - h - h_bias)
+
+        whbias = torch.stack([w, h, w_bias, h_bias], dim=0).t()
+
+        return whbias
+
+    def _sample_latent(self, inputs):
+
+        _device = inputs.device
+        N, _, width, height = inputs.shape
+        height = height.type(torch.float)
+        width = width.type(torch.float)
+        N = N.type(torch.float)
+        # N * 10 trial
+        area = width * height
+        target_area = torch.FloatTensor(N * 10).uniform_(self.scale[0], self.scale[1]) * area
+        # target_area = np.random.uniform(*self.scale, N * 10) * area
+        # log_ratio = (math.log(self.ratio[0]), math.log(self.ratio[1]))
+        aspect_ratio = torch.exp(torch.FloatTensor(N * 10).uniform_(torch.log(self.ratio[0]), torch.log(self.ratio[1])))
+        # aspect_ratio = np.exp(np.random.uniform(*log_ratio, N * 10))
+
+        # If doesn't satisfy ratio condition, then do central crop
+        w = torch.round(torch.sqrt(target_area * aspect_ratio))
+        h = torch.round(torch.sqrt(target_area / aspect_ratio))
+        # w = np.round(np.sqrt(target_area * aspect_ratio))
+        # h = np.round(np.sqrt(target_area / aspect_ratio))
+        cond = (0 < w) * (w <= width) * (0 < h) * (h <= height)
+        w = w[cond]
+        h = h[cond]
+        cond_len = w.shape[0]
+        if cond_len >= N:
+            w = w[:N]
+            h = h[:N]
+        else:
+            w = torch.cat([w, torch.ones(N - cond_len) * width])
+            h = torch.cat([h, torch.ones(N - cond_len) * height])
+            # w = np.concatenate([w, np.ones(N - cond_len) * width])
+            # h = np.concatenate([h, np.ones(N - cond_len) * height])
+
+        w_bias = torch.randint(w.numpy() - width, int(width - w.numpy() + 1)) / width
+        h_bias = torch.randint(h.numpy() - height, height - h.numpy() + 1) / height
+        w_bias = np.random.randint(w - width, width - w + 1) / width
+        # h_bias = np.random.randint(h - height, height - h + 1) / height
+        w = w / width
+        h = h / height
+
+        whbias = torch.column_stack([w, h, w_bias, h_bias])
+        # whbias = np.column_stack([w, h, w_bias, h_bias])
+        # whbias = torch.tensor(whbias, device=_device)
         return whbias
 
 
@@ -199,7 +306,7 @@ class HorizontalFlipRandomCrop(nn.Module):
 
 
 class Rotation(nn.Module):
-    def __init__(self, max_range = 4):
+    def __init__(self, max_range=4):
         super(Rotation, self).__init__()
         self.max_range = max_range
         self.prob = 0.5
@@ -216,7 +323,7 @@ class Rotation(nn.Module):
 
             _prob = input.new_full((input.size(0),), self.prob)
             _mask = torch.bernoulli(_prob).view(-1, 1, 1, 1)
-            output = _mask * input + (1-_mask) * output
+            output = _mask * input + (1 - _mask) * output
 
         else:
             aug_index = aug_index % self.max_range
@@ -226,7 +333,7 @@ class Rotation(nn.Module):
 
 
 class CutPerm(nn.Module):
-    def __init__(self, max_range = 4):
+    def __init__(self, max_range=4):
         super(CutPerm, self).__init__()
         self.max_range = max_range
         self.prob = 0.5
@@ -279,6 +386,7 @@ class HorizontalFlipLayer(nn.Module):
         super(HorizontalFlipLayer, self).__init__()
 
         _eye = torch.eye(2, 3)
+        # self.r_sign = torch.tensor([1.], dtype=torch.float)
         self.register_buffer('_eye', _eye)
 
     def forward(self, inputs):
@@ -286,8 +394,9 @@ class HorizontalFlipLayer(nn.Module):
 
         N = inputs.size(0)
         _theta = self._eye.repeat(N, 1, 1)
-        r_sign = torch.bernoulli(torch.ones(N, device=_device) * 0.5) * 2 - 1
-        _theta[:, 0, 0] = r_sign
+        # r_sign = torch.bernoulli(torch.ones(N, device=_device) * 0.5) * 2 - 1
+        # r_sign = torch.tensor([-1.], dtype=torch.float)
+        # _theta[:, 0, 0] = self.r_sign
         grid = F.affine_grid(_theta, inputs.size(), **kwargs).to(_device)
         inputs = F.grid_sample(inputs, grid, padding_mode='reflection', **kwargs)
 
@@ -301,6 +410,7 @@ class RandomColorGrayLayer(nn.Module):
 
         _weight = torch.tensor([[0.299, 0.587, 0.114]])
         self.register_buffer('_weight', _weight.view(1, 3, 1, 1))
+        self._mask = torch.tensor([[[[0.]]], [[[0.]]], [[[0.]]], [[[0.]]]], dtype=torch.float)
 
     def forward(self, inputs, aug_index=None):
 
@@ -311,10 +421,10 @@ class RandomColorGrayLayer(nn.Module):
         gray = torch.cat([l, l, l], dim=1)
 
         if aug_index is None:
-            _prob = inputs.new_full((inputs.size(0),), self.prob)
-            _mask = torch.bernoulli(_prob).view(-1, 1, 1, 1)
-
-            gray = inputs * (1 - _mask) + gray * _mask
+            # _prob = inputs.new_full((inputs.size(0),), self.prob)
+            # _mask = torch.bernoulli(_prob).view(-1, 1, 1, 1)
+            # _mask = torch.tensor([[[[0.]]], [[[0.]]], [[[0.]]], [[[0.]]]], dtype=torch.float)
+            gray = inputs * (1 - self._mask) + gray * self._mask
 
         return gray
 
@@ -328,6 +438,8 @@ class ColorJitterLayer(nn.Module):
         self.saturation = self._check_input(saturation, 'saturation')
         self.hue = self._check_input(hue, 'hue', center=0, bound=(-0.5, 0.5),
                                      clip_first_on_zero=False)
+        self.rand_hsv = RandomHSVFunctionTorch()
+        self._mask = torch.tensor([[[[0.]]], [[[0.]]], [[[0.]]], [[[0.]]]], dtype=torch.float)
 
     def _check_input(self, value, name, center=1, bound=(0, float('inf')), clip_first_on_zero=True):
         if isinstance(value, numbers.Number):
@@ -367,14 +479,15 @@ class ColorJitterLayer(nn.Module):
         if self.brightness:
             f_v = f_v.uniform_(*self.brightness)
 
-        return RandomHSVFunction.apply(x, f_h, f_s, f_v)
+        return self.rand_hsv(x, f_h, f_s, f_v)
 
     def transform(self, inputs):
         # Shuffle transform
-        if np.random.rand() > 0.5:
-            transforms = [self.adjust_contrast, self.adjust_hsv]
-        else:
-            transforms = [self.adjust_hsv, self.adjust_contrast]
+        # if np.random.rand() > 0.5:
+        #     transforms = [self.adjust_contrast, self.adjust_hsv]
+        # else:
+        #     transforms = [self.adjust_hsv, self.adjust_contrast]
+        transforms = [self.adjust_contrast, self.adjust_hsv]
 
         for t in transforms:
             inputs = t(inputs)
@@ -383,8 +496,37 @@ class ColorJitterLayer(nn.Module):
 
     def forward(self, inputs):
         _prob = inputs.new_full((inputs.size(0),), self.prob)
-        _mask = torch.bernoulli(_prob).view(-1, 1, 1, 1)
-        return inputs * (1 - _mask) + self.transform(inputs) * _mask
+        # _mask = torch.bernoulli(_prob).view(-1, 1, 1, 1)
+        # _mask = torch.tensor([[[[0.]]], [[[0.]]], [[[0.]]], [[[0.]]]], dtype=torch.float)
+        # print('_mask', _mask, _mask.type())
+        return inputs * (1 - self._mask) + self.transform(inputs) * self._mask
+
+
+class RandomHSVFunctionTorch(nn.Module):
+    def __init__(self):
+        super(RandomHSVFunctionTorch, self).__init__()
+
+    def forward(self, x, f_h, f_s, f_v):
+        # ctx is a context object that can be used to stash information
+        # for backward computation
+        x = rgb2hsv(x)
+        h = x[:, 0, :, :]
+        h += (f_h * 255. / 360.)
+        h = (h % 1)
+        x[:, 0, :, :] = h
+        x[:, 1, :, :] = x[:, 1, :, :] * f_s
+        x[:, 2, :, :] = x[:, 2, :, :] * f_v
+        x = torch.clamp(x, 0, 1)
+        x = hsv2rgb(x)
+        return x
+
+    def backward(self, grad_output):
+        # We return as many input gradients as there were arguments.
+        # Gradients of non-Tensor arguments to forward must be None.
+        grad_input = None
+        if ctx.needs_input_grad[0]:
+            grad_input = grad_output.clone()
+        return grad_input, None, None, None
 
 
 class RandomHSVFunction(Function):
@@ -425,4 +567,3 @@ class NormalizeLayer(nn.Module):
 
     def forward(self, inputs):
         return (inputs - 0.5) / 0.5
-

@@ -1,6 +1,5 @@
 from abc import *
 import torch.nn as nn
-import torch
 
 
 class BaseModel(nn.Module, metaclass=ABCMeta):
@@ -20,7 +19,7 @@ class BaseModel(nn.Module, metaclass=ABCMeta):
     def penultimate(self, inputs, all_features=False):
         pass
 
-    def forward(self, inputs, penultimate=False, simclr=False, shift=False, joint=False):
+    def forward_(self, inputs, penultimate=False, simclr=False, shift=False, joint=False):
         _aux = {}
         _return_aux = False
 
@@ -48,60 +47,3 @@ class BaseModel(nn.Module, metaclass=ABCMeta):
             return output, _aux
 
         return output
-
-    def forward_(self, inputs):
-        with torch.no_grad():
-            inputs = torch.cat([self.shift_trans(self.hflip(inputs), k) for k in range(4)])
-            # inputs = torch.cat([self.shift_trans(inputs, k) for k in range(4)])
-            inputs = self.simclr_aug(inputs)
-            features = self.penultimate(inputs)
-            f_sim = self.simclr_layer(features)
-            # f_shi = self.shift_cls_layer(features)
-            # print(f_sim.shape)
-            # print(f_sim.chunk(4))
-            # print(self.axis.shape)
-            # print(self.weight_sim.shape)
-            # self.score += (f_sim * self.axis).sum(dim=1).max() * self.weight_sim
-            # self.score += f_shi[:] * self.weight_shi
-            f_sim = f_sim.unsqueeze(dim=1)
-            # print((f_sim * self.axis).sum(dim=2).shape)
-            # print((f_sim * self.axis).sum(dim=2).max().shape)
-            # print((f_sim * self.axis).sum(dim=2).max(), (f_sim * self.axis).sum(dim=2).max(dim=1))
-
-            return (f_sim * self.axis).sum(dim=2)
-            # return (f_sim * self.axis).sum(dim=2).max(dim=1)
-            # score = ((f_sim * self.axis).sum(dim=2).max(dim=1).values * self.weight_sim).sum()
-            # score = f_shi[0][0]
-            # score = f_shi[0][0] * self.weight_shi[0]
-            # score += f_shi[1][1] * self.weight_shi[1]
-            # score += f_shi[2][2] * self.weight_shi[2]
-            # score += f_shi[3][3] * self.weight_shi[3]
-            # print(f_shi.shape)
-            # print(len(f_shi.chunk(4)))
-            # print(f_shi.chunk(4)[0].shape)
-            # f_sim = [f.mean(dim=0, keepdim=True) for f in f_sim.chunk(4)]  # list of (1, d)
-            # f_shi = [f.mean(dim=0, keepdim=True) for f in f_shi.chunk(4)]  # list of (1, 4)
-            # for shi in range(4):
-            #     # print(f_sim[shi].is_cuda())
-            #     tmp_axis = self.axis[shi]
-            #     print('f_shi[shi]', f_shi[shi].shape)
-            #     print('f_shi[shi][:]', f_shi[shi][:].shape)
-            #     print('f_shi[shi][:, shi]', f_shi[shi][:, shi].shape)
-            #     print('f_shi[shi][:, shi][0]', f_shi[shi][:, shi][0])
-            #     sys.exit()
-            #     self.score += (f_sim[shi] * tmp_axis).sum(dim=1).max() * self.weight_sim[shi]
-            #     self.score += f_shi[shi][:, shi][0] * self.weight_shi[shi]
-            # return score / 4
-
-    def set_transforms(self, hflip, shift_transform, simclr_aug, axis):
-        self.hflip = hflip
-        self.shift_trans = shift_transform
-        self.simclr_aug = simclr_aug
-        self.axis = torch.cat([torch.unsqueeze(axis[0], 0),torch.unsqueeze(axis[1], 0),torch.unsqueeze(axis[2], 0),torch.unsqueeze(axis[3], 0)], axis=0)
-        # self.axis = torch.tensor(axis, dtype=torch.float)
-        self.weight_sim = torch.tensor(
-            [0.007519226599080519, 0.007939391391667395, 0.008598049328054363, 0.015014530319964874], dtype=torch.float,
-            requires_grad=False)
-        # self.weight_shi = torch.tensor(
-        #     [0.04909334419285857, 0.052858438675397496, 0.05840793893796496, 0.11790745570891596], dtype=torch.float,
-        #     requires_grad=False)
