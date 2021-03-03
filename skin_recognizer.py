@@ -116,10 +116,11 @@ class SkinRecognizer(object):
         # compute features in one batch
         feats_batch = {layer: [] for layer in self.layers}  # initialize: empty list
         if self.params.K_shift > 1:
-            x_t = torch.cat([self.params.shift_trans(self.hflip(x), k) for k in range(self.params.K_shift)])
+            # x_t = torch.cat([self.params.shift_trans(self.hflip(x), k) for k in range(self.params.K_shift)])
+            x_t = torch.cat([self.params.shift_trans(x, k) for k in range(self.params.K_shift)])
         else:
             x_t = x  # No shifting: SimCLR
-        x_t = self.simclr_aug(x_t)
+        # x_t = self.simclr_aug(x_t)
 
         # compute augmented features
         with torch.no_grad():
@@ -213,11 +214,13 @@ def main(P):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--load_path', type=str, default=None)
-    parser.add_argument('--image_dir', type=str, default=None)
-    parser.add_argument('--axis_path', type=str, default=None)
-    parser.add_argument('--score_thres', type=float, default=0.86)
+    parser.add_argument('--load_path', type=str,
+                        default='/home/irelin/resource/afp/skin_anomaly_detection/resnet18_224_last.model')
+    parser.add_argument('--image_dir', type=str,
+                        default='/home/irelin/resource/afp/skin_anomaly_detection/real_test_images')
+    parser.add_argument('--axis_path', type=str, default='/home/irelin/resource/afp/skin_anomaly_detection/axis.pth')
+    parser.add_argument('--score_thres', type=float, default=0.4)
     parser.add_argument('--use_cuda', action='store_true', default=False)
-    parser.add_argument('--is_true', action='store_true', default=False)
+    parser.add_argument('--is_true', action='store_true', default=True)
 
     main(parser.parse_args())

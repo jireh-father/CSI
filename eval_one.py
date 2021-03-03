@@ -30,17 +30,17 @@ def _get_features(P, model, img, simclr_aug=None, layers=('simclr', 'shift'), hf
     feats_batch = {layer: [] for layer in layers}  # initialize: empty list
 
     if P.K_shift > 1:
-        x_t = torch.cat([P.shift_trans(hflip(x), k) for k in range(P.K_shift)])
+        # x_t = torch.cat([P.shift_trans(hflip(x), k) for k in range(P.K_shift)])
+        x_t = torch.cat([P.shift_trans(x, k) for k in range(P.K_shift)])
     else:
         x_t = x  # No shifting: SimCLR
-    x_t = simclr_aug(x_t)
+    # x_t = simclr_aug(x_t)
+    # x_t = x
 
     # compute augmented features
     with torch.no_grad():
         kwargs = {layer: True for layer in layers}  # only forward selected layers
-        start = time.time()
         _, output_aux = model(x_t, **kwargs)
-        print(time.time() - start)
     # add features in one batch
     for layer in layers:
         feats = output_aux[layer].cpu()
@@ -177,7 +177,7 @@ def main(P):
     image_files = glob.glob(os.path.join(P.image_dir, "*"))
     total_scores = []
     for i, image_file in enumerate(image_files):
-        print(i, len(image_files))
+        print(i, len(image_files), image_file)
         start = time.time()
         try:
             img = Image.open(image_file).convert("RGB")
@@ -187,10 +187,11 @@ def main(P):
         features = get_features(P, model, img, **kwargs)
         scores = get_scores(P, features, device).numpy()
         print(time.time() - start)
+        print(scores)
         total_scores += list(scores)
     print(total_scores)
     total_scores = np.array(total_scores)
-    for i in range(40, 100):
+    for i in range(20, 100):
         if P.is_true:
             print('true accuracy', i, (total_scores >= i / 100).sum() / len(total_scores))
         else:
@@ -205,11 +206,11 @@ def main(P):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--load_path', type=str, default=None)
-    parser.add_argument('--image_dir', type=str, default=None)
-    parser.add_argument('--axis_path', type=str, default=None)
-    parser.add_argument('--score_thres', type=float, default=0.86)
+    parser.add_argument('--load_path', type=str, default='/home/irelin/resource/afp/skin_anomaly_detection/resnet18_224_last.model')
+    parser.add_argument('--image_dir', type=str, default='/home/irelin/resource/afp/skin_anomaly_detection/real_test_images')
+    parser.add_argument('--axis_path', type=str, default='/home/irelin/resource/afp/skin_anomaly_detection/axis.pth')
+    parser.add_argument('--score_thres', type=float, default=0.64)
     parser.add_argument('--use_cuda', action='store_true', default=False)
-    parser.add_argument('--is_true', action='store_true', default=False)
+    parser.add_argument('--is_true', action='store_true', default=True)
 
     main(parser.parse_args())

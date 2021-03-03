@@ -19,7 +19,7 @@ class BaseModel(nn.Module, metaclass=ABCMeta):
     def penultimate(self, inputs, all_features=False):
         pass
 
-    def forward_(self, inputs, penultimate=False, simclr=False, shift=False, joint=False):
+    def forward(self, inputs, penultimate=False, simclr=False, shift=False, joint=False):
         _aux = {}
         _return_aux = False
 
