@@ -295,6 +295,8 @@ def get_superclass_list(dataset):
         return IMAGENET_SUPERCLASS
     elif dataset in ['skin', 'skin_small', 'ab']:
         return list(range(2))
+    elif dataset.startswith("skin"):
+        return list(range(2))
     elif dataset in ['skin_total']:
         return list(range(4))
     else:
