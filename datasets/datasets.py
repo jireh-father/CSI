@@ -124,7 +124,7 @@ def get_transform_imagenet():
 
 def get_dataset(P, dataset, test_only=False, image_size=None, download=False, eval=False):
     if dataset in ['imagenet', 'cub', 'stanford_dogs', 'flowers102',
-                   'places365', 'food_101', 'caltech_256', 'dtd', 'pets', 'skin']:
+                   'places365', 'food_101', 'caltech_256', 'dtd', 'pets', 'skin', 'ab']:
         if eval:
             train_transform, test_transform = get_simclr_eval_transform_imagenet(P.ood_samples,
                                                                                  P.resize_factor, P.resize_fix)
@@ -184,6 +184,14 @@ def get_dataset(P, dataset, test_only=False, image_size=None, download=False, ev
         n_classes = 2
         train_dir = os.path.join(DATA_PATH, 'skin', 'train')
         test_dir = os.path.join(DATA_PATH, 'skin', 'test')
+        train_set = datasets.ImageFolder(train_dir, transform=train_transform)
+        test_set = datasets.ImageFolder(test_dir, transform=test_transform)
+
+    elif dataset == 'ab':
+        image_size = (224, 224, 3)
+        n_classes = 2
+        train_dir = os.path.join(DATA_PATH, 'ab', 'train')
+        test_dir = os.path.join(DATA_PATH, 'ab', 'test')
         train_set = datasets.ImageFolder(train_dir, transform=train_transform)
         test_set = datasets.ImageFolder(test_dir, transform=test_transform)
 
@@ -259,7 +267,7 @@ def get_superclass_list(dataset):
         return CIFAR100_SUPERCLASS
     elif dataset == 'imagenet':
         return IMAGENET_SUPERCLASS
-    elif dataset in ['skin', 'skin_small']:
+    elif dataset in ['skin', 'skin_small', 'ab']:
         return list(range(2))
     else:
         raise NotImplementedError()

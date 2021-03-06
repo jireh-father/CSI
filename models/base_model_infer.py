@@ -51,9 +51,9 @@ class BaseModel(nn.Module, metaclass=ABCMeta):
 
     def forward(self, inputs):
         with torch.no_grad():
-            inputs = torch.cat([self.shift_trans(self.hflip(inputs), k) for k in range(4)])
-            # inputs = torch.cat([self.shift_trans(inputs, k) for k in range(4)])
-            inputs = self.simclr_aug(inputs)
+            # inputs = torch.cat([self.shift_trans(self.hflip(inputs), k) for k in range(4)])
+            inputs = torch.cat([self.shift_trans(inputs, k) for k in range(4)])
+            # inputs = self.simclr_aug(inputs)
             features = self.penultimate(inputs)
             f_sim = self.simclr_layer(features)
             f_shi = self.shift_cls_layer(features)
@@ -92,8 +92,8 @@ class BaseModel(nn.Module, metaclass=ABCMeta):
             #     self.score += f_shi[shi][:, shi][0] * self.weight_shi[shi]
             # return score / 4
 
-    def set_transforms(self, hflip, shift_transform, simclr_aug, axis):
-        self.hflip = hflip
+    def set_transforms(self, shift_transform, axis):#hflip, shift_transform, simclr_aug, axis):
+        # self.hflip = hflip
         self.shift_trans = shift_transform
-        self.simclr_aug = simclr_aug
+        # self.simclr_aug = simclr_aug
         self.axis = torch.cat([torch.unsqueeze(axis[0], 0),torch.unsqueeze(axis[1], 0),torch.unsqueeze(axis[2], 0),torch.unsqueeze(axis[3], 0)], axis=0)

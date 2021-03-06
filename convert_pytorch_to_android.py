@@ -39,15 +39,16 @@ def main(args):
     axis = pickle.load(open(args.axis_path, "rb"))
     for i in range(4):
         axis[i] = axis[i].to(device)
-    hflip = TL.HorizontalFlipLayer().to(device)
+    # hflip = TL.HorizontalFlipLayer().to(device)
     shift_transform = TL.Rotation()
-    simclr_aug = get_simclr_augmentation().to(device)
+    # simclr_aug = get_simclr_augmentation().to(device)
 
     model = resnet18(num_classes=2)
     model = get_shift_classifer(model, K_shift).to(device)
 
     checkpoint = torch.load(args.model_path, map_location=device)
-    model.set_transforms(hflip, shift_transform, simclr_aug, axis)
+    # model.set_transforms(hflip, shift_transform, simclr_aug, axis)
+    model.set_transforms(shift_transform, axis)
     model.load_state_dict(checkpoint, strict=False)
     model.eval()
 
