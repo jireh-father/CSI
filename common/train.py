@@ -52,7 +52,7 @@ if P.one_class_idx is not None:
     train_set = get_subclass_dataset(train_set, classes=cls_list[P.one_class_idx])
     test_set = get_subclass_dataset(test_set, classes=cls_list[P.one_class_idx])
 
-kwargs = {'pin_memory': False, 'num_workers': 4}
+kwargs = {'pin_memory': False, 'num_workers': P.num_workers}
 
 if P.multi_gpu:
     train_sampler = DistributedSampler(train_set, num_replicas=P.n_gpus, rank=P.local_rank)

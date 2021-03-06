@@ -83,6 +83,9 @@ def parse_args(default=False):
     parser.add_argument("--save_score", help='save ood score for plotting histogram',
                         action='store_true')
 
+    parser.add_argument('--num_workers', help='Batch size for test loader',
+                        default=4, type=int)
+
     if default:
         return parser.parse_args('')  # empty string
     else:
