@@ -209,6 +209,12 @@ def get_dataset(P, dataset, test_only=False, image_size=None, download=False, ev
         train_set = datasets.ImageFolder(train_dir, transform=train_transform)
         test_set = datasets.ImageFolder(test_dir, transform=test_transform)
 
+    elif dataset == 'noskin':
+        assert test_only and image_size is not None
+        test_dir = os.path.join(DATA_PATH, 'noskin')
+        test_set = datasets.ImageFolder(test_dir, transform=test_transform)
+        # test_set = get_subset_with_len(test_set, length=3000, shuffle=True)
+
     elif dataset == 'stanford_dogs':
         assert test_only and image_size is not None
         test_dir = os.path.join(DATA_PATH, 'stanford_dogs')
