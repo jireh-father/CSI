@@ -43,3 +43,4 @@ for image_file in glob.glob(os.path.join(dir1, "*")):
 
 for image_file in glob.glob(os.path.join(dir2, "*")):
     Image.open(image_file).convert("RGB").resize((224, 224)).save(image_file + ".jpg", format="JPEG")
+

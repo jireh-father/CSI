@@ -10,7 +10,6 @@ from utils.utils import set_random_seed
 DATA_PATH = '~/data/'
 IMAGENET_PATH = '~/data/ImageNet'
 
-
 CIFAR10_SUPERCLASS = list(range(10))  # one class
 IMAGENET_SUPERCLASS = list(range(30))  # one class
 
@@ -104,7 +103,6 @@ def get_subset_with_len(dataset, length, shuffle=False):
 
 
 def get_transform_imagenet():
-
     train_transform = transforms.Compose([
         transforms.Resize(256),
         transforms.RandomResizedCrop(224),
@@ -124,7 +122,7 @@ def get_transform_imagenet():
 
 def get_dataset(P, dataset, test_only=False, image_size=None, download=False, eval=False):
     if dataset in ['imagenet', 'cub', 'stanford_dogs', 'flowers102',
-                   'places365', 'food_101', 'caltech_256', 'dtd', 'pets', 'skin', 'ab']:
+                   'places365', 'food_101', 'caltech_256', 'dtd', 'pets', 'skin', 'ab'] or dataset.startswith("skin"):
         if eval:
             train_transform, test_transform = get_simclr_eval_transform_imagenet(P.ood_samples,
                                                                                  P.resize_factor, P.resize_fix)
@@ -203,6 +201,14 @@ def get_dataset(P, dataset, test_only=False, image_size=None, download=False, ev
         train_set = datasets.ImageFolder(train_dir, transform=train_transform)
         test_set = datasets.ImageFolder(test_dir, transform=test_transform)
 
+    elif dataset == 'skin_total':
+        image_size = (224, 224, 3)
+        n_classes = 4
+        train_dir = os.path.join(DATA_PATH, 'skin', 'train')
+        test_dir = os.path.join(DATA_PATH, 'skin', 'test')
+        train_set = datasets.ImageFolder(train_dir, transform=train_transform)
+        test_set = datasets.ImageFolder(test_dir, transform=test_transform)
+
     elif dataset == 'stanford_dogs':
         assert test_only and image_size is not None
         test_dir = os.path.join(DATA_PATH, 'stanford_dogs')
@@ -269,6 +275,8 @@ def get_superclass_list(dataset):
         return IMAGENET_SUPERCLASS
     elif dataset in ['skin', 'skin_small', 'ab']:
         return list(range(2))
+    elif dataset in ['skin_total']:
+        return list(range(4))
     else:
         raise NotImplementedError()
 
@@ -287,7 +295,6 @@ def get_subclass_dataset(dataset, classes):
 
 
 def get_simclr_eval_transform_imagenet(sample_num, resize_factor, resize_fix):
-
     resize_scale = (resize_factor, 1.0)  # resize scaling factor
     if resize_fix:  # if resize_fix is True, use same scale
         resize_scale = (resize_factor, resize_factor)
@@ -308,5 +315,3 @@ def get_simclr_eval_transform_imagenet(sample_num, resize_factor, resize_fix):
     transform = MultiDataTransformList(transform, clean_trasform, sample_num)
 
     return transform, transform
-
-
