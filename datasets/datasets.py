@@ -204,8 +204,8 @@ def get_dataset(P, dataset, test_only=False, image_size=None, download=False, ev
     elif dataset == 'skin_total':
         image_size = (224, 224, 3)
         n_classes = 4
-        train_dir = os.path.join(DATA_PATH, 'skin', 'train')
-        test_dir = os.path.join(DATA_PATH, 'skin', 'test')
+        train_dir = os.path.join(DATA_PATH, 'skin_total', 'train')
+        test_dir = os.path.join(DATA_PATH, 'skin_total', 'test')
         train_set = datasets.ImageFolder(train_dir, transform=train_transform)
         test_set = datasets.ImageFolder(test_dir, transform=test_transform)
 
