@@ -184,7 +184,21 @@ def get_dataset(P, dataset, test_only=False, image_size=None, download=False, ev
         test_dir = os.path.join(DATA_PATH, 'skin', 'test')
         train_set = datasets.ImageFolder(train_dir, transform=train_transform)
         test_set = datasets.ImageFolder(test_dir, transform=test_transform)
+    elif dataset == 'skin_foot':
+        image_size = (224, 224, 3)
+        n_classes = 2
+        train_dir = os.path.join(DATA_PATH, 'skin_foot', 'train')
+        test_dir = os.path.join(DATA_PATH, 'skin_foot', 'test')
+        train_set = datasets.ImageFolder(train_dir, transform=train_transform)
+        test_set = datasets.ImageFolder(test_dir, transform=test_transform)
 
+    elif dataset == 'skin_ear':
+        image_size = (224, 224, 3)
+        n_classes = 2
+        train_dir = os.path.join(DATA_PATH, 'skin_ear', 'train')
+        test_dir = os.path.join(DATA_PATH, 'skin_ear', 'test')
+        train_set = datasets.ImageFolder(train_dir, transform=train_transform)
+        test_set = datasets.ImageFolder(test_dir, transform=test_transform)
     elif dataset == 'ab':
         image_size = (224, 224, 3)
         n_classes = 2
