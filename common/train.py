@@ -129,7 +129,7 @@ if P.resume_path is not None:
     model.load_state_dict(model_state, strict=not P.no_strict)
     optimizer.load_state_dict(optim_state)
     start_epoch = config['epoch']
-    best = config['best']
+    best = 100.0#config['best']
     error = 100.0
 else:
     resume = False
