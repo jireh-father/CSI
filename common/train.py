@@ -125,7 +125,7 @@ scheduler_warmup = GradualWarmupScheduler(optimizer, multiplier=10.0, total_epoc
 
 if P.resume_path is not None:
     resume = True
-    model_state, optim_state, config = load_checkpoint(P.resume_path, mode='last')
+    model_state, optim_state, config = load_checkpoint2(P.resume_path, mode='last')
     model.load_state_dict(model_state, strict=not P.no_strict)
     optimizer.load_state_dict(optim_state)
     start_epoch = config['epoch']

@@ -125,6 +125,22 @@ def load_checkpoint(logdir, mode='last'):
     return model_state, optim_state, cfg
 
 
+def load_checkpoint2(path):
+    model_path = path + '.model'
+    optim_path = path + '.optim'
+    config_path = path + '.config'
+
+    if os.path.exists(model_path):
+        model_state = torch.load(model_path)
+        optim_state = torch.load(optim_path)
+        with open(config_path, 'rb') as handle:
+            cfg = pickle.load(handle)
+    else:
+        return None, None, None
+
+    return model_state, optim_state, cfg
+
+
 def save_checkpoint(epoch, model_state, optim_state, logdir):
     last_model = os.path.join(logdir, '{}.model'.format(epoch))
     last_optim = os.path.join(logdir, '{}.optim'.format(epoch))
@@ -201,5 +217,3 @@ def make_model_diagrams(probs, labels, n_bins=10):
     rel_ax.set_xlabel('Confidence')
     f.tight_layout()
     return f
-
-
