@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 from common.common import parse_args
 import models.classifier as C
 from datasets import get_dataset, get_superclass_list, get_subclass_dataset
-from utils.utils import load_checkpoint2
+from utils.utils import load_checkpoint2, load_checkpoint
 
 P = parse_args()
 
@@ -125,7 +125,10 @@ scheduler_warmup = GradualWarmupScheduler(optimizer, multiplier=10.0, total_epoc
 
 if P.resume_path is not None:
     resume = True
-    model_state, optim_state, config = load_checkpoint2(P.resume_path)
+    if P.save_model_epoch:
+        model_state, optim_state, config = load_checkpoint2(P.resume_path)
+    else:
+        model_state, optim_state, config = load_checkpoint(P.resume_path, 'last')
     model.load_state_dict(model_state, strict=not P.no_strict)
     optimizer.load_state_dict(optim_state)
     start_epoch = config['epoch']

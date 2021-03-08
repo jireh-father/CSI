@@ -43,7 +43,7 @@ for epoch in range(start_epoch, P.epochs + 1):
             save_states = model.module.state_dict()
         else:
             save_states = model.state_dict()
-        save_checkpoint(epoch, save_states, optimizer.state_dict(), logger.logdir)
+        save_checkpoint(epoch, save_states, optimizer.state_dict(), logger.logdir, P.save_model_epoch)
         save_linear_checkpoint(linear_optim.state_dict(), logger.logdir)
 
     if epoch % P.error_step == 0 and ('sup' in P.mode):
