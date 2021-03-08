@@ -54,7 +54,10 @@ class SkinRecognizer(object):
         model = self.get_classifier().to(device)
         model = self.get_shift_classifer(model).to(device)
 
-        checkpoint = torch.load(model_path)
+        if use_cuda:
+            checkpoint = torch.load(model_path)
+        else:
+            checkpoint = torch.load(model_path, map_location='cpu')
         model.load_state_dict(checkpoint)
         self.model = model
 

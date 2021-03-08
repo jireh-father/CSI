@@ -168,7 +168,10 @@ def main(P):
     model = C.get_classifier(P.model, n_classes=P.n_classes).to(device)
     model = C.get_shift_classifer(model, P.K_shift).to(device)
 
-    checkpoint = torch.load(P.load_path)
+    if P.use_cuda:
+        checkpoint = torch.load(P.load_path)
+    else:
+        checkpoint = torch.load(P.load_path, map_location='cpu')
     model.load_state_dict(checkpoint, strict=not P.no_strict)
 
     kwargs = {
