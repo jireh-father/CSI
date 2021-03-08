@@ -42,9 +42,11 @@ def eval_ood_detection(P, model, id_loader, ood_loaders, ood_scores, train_loade
     feats_train = get_features(P, f'{P.dataset}_train', model, train_loader, prefix=prefix, **kwargs)  # (M, T, d)
     print(list(feats_train.keys()))
     P.axis = []
+    axis_dump = []
     for f in feats_train['simclr'].chunk(P.K_shift, dim=1):
         axis = f.mean(dim=1)  # (M, d)
         P.axis.append(normalize(axis, dim=1).to(device))
+        axis_dump.append(normalize(axis, dim=1).to('cpu'))
     print('axis size: ' + ' '.join(map(lambda x: str(len(x)), P.axis)))
 
     f_sim = [f.mean(dim=1) for f in feats_train['simclr'].chunk(P.K_shift, dim=1)]  # list of (M, d)
@@ -71,7 +73,7 @@ def eval_ood_detection(P, model, id_loader, ood_loaders, ood_scores, train_loade
     weight_sim_path = prefix + f'_weight_sim.pth'
     weight_shi_path = prefix + f'_weight_shi.pth'
 
-    pickle.dump(P.axis, open(axis_path, "wb+"))
+    pickle.dump(axis_dump, open(axis_path, "wb+"))
     pickle.dump(P.weight_sim, open(weight_sim_path, "wb+"))
     pickle.dump(P.weight_shi, open(weight_shi_path, "wb+"))
 
