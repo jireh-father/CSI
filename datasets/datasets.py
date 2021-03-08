@@ -121,7 +121,7 @@ def get_transform_imagenet():
 
 
 def get_dataset(P, dataset, test_only=False, image_size=None, download=False, eval=False):
-    if dataset in ['imagenet', 'cub', 'stanford_dogs', 'flowers102',
+    if not P.use_cifar10 or dataset in ['imagenet', 'cub', 'stanford_dogs', 'flowers102',
                    'places365', 'food_101', 'caltech_256', 'dtd', 'pets', 'skin', 'ab'] or dataset.startswith("skin"):
         if eval:
             train_transform, test_transform = get_simclr_eval_transform_imagenet(P.ood_samples,
@@ -278,7 +278,15 @@ def get_dataset(P, dataset, test_only=False, image_size=None, download=False, ev
         test_set = get_subset_with_len(test_set, length=3000, shuffle=True)
 
     else:
-        raise NotImplementedError()
+        if P.use_cifar10:
+            raise NotImplementedError()
+        else:
+            image_size = (224, 224, 3)
+            n_classes = 2
+            train_dir = os.path.join(DATA_PATH, dataset, 'train')
+            test_dir = os.path.join(DATA_PATH, dataset, 'test')
+            train_set = datasets.ImageFolder(train_dir, transform=train_transform)
+            test_set = datasets.ImageFolder(test_dir, transform=test_transform)
 
     if test_only:
         return test_set
@@ -300,7 +308,8 @@ def get_superclass_list(dataset):
     elif dataset in ['skin_total']:
         return list(range(4))
     else:
-        raise NotImplementedError()
+        return list(range(2))
+        # raise NotImplementedError()
 
 
 def get_subclass_dataset(dataset, classes):

@@ -86,7 +86,8 @@ def parse_args(default=False):
 
     parser.add_argument("--save_model_epoch", help='save ood score for plotting histogram',
                         action='store_true', default=False)
-
+    parser.add_argument("--use_cifar10", help='save ood score for plotting histogram',
+                        action='store_true', default=False)
     parser.add_argument('--num_workers', help='Batch size for test loader',
                         default=4, type=int)
 
