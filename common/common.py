@@ -88,6 +88,8 @@ def parse_args(default=False):
                         action='store_true', default=False)
     parser.add_argument("--use_cifar10", help='save ood score for plotting histogram',
                         action='store_true', default=False)
+    parser.add_argument("--use_albu_aug", help='save ood score for plotting histogram',
+                        action='store_true', default=False)
     parser.add_argument('--num_workers', help='Batch size for test loader',
                         default=4, type=int)
 

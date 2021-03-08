@@ -1,5 +1,11 @@
 import os
+import cv2
 
+cv2.setNumThreads(0)
+cv2.ocl.setUseOpenCL(False)
+
+import albumentations as al
+from albumentations.pytorch import ToTensorV2
 import numpy as np
 import torch
 from torch.utils.data.dataset import Subset
@@ -35,6 +41,17 @@ CIFAR100_SUPERCLASS = [
     [8, 13, 48, 58, 90],
     [41, 69, 81, 85, 89],
 ]
+
+
+class MultiDataTransformAlbu(object):
+    def __init__(self, transform):
+        self.transform1 = transform
+        self.transform2 = transform
+
+    def __call__(self, sample):
+        x1 = self.transform1(image=sample)['image']
+        x2 = self.transform1(image=sample)['image']
+        return x1, x2
 
 
 class MultiDataTransform(object):
@@ -102,32 +119,107 @@ def get_subset_with_len(dataset, length, shuffle=False):
     return subset
 
 
-def get_transform_imagenet():
-    train_transform = transforms.Compose([
-        transforms.Resize(256),
-        transforms.RandomResizedCrop(224),
-        transforms.RandomHorizontalFlip(),
-        transforms.ToTensor(),
-    ])
+def get_transform_imagenet(use_albu_aug):
+    if use_albu_aug:
+        train_transform = al.Compose([
+            # al.Flip(p=0.5),
+            al.Resize(256, 256, interpolation=2),
+            al.RandomResizedCrop(224, 224, scale=(0.08, 1.0), ratio=(3. / 4., 4. / 3.), interpolation=2),
+            al.HorizontalFlip(),
+            al.OneOf([
+                al.OneOf([
+                    al.ShiftScaleRotate(border_mode=cv2.BORDER_CONSTANT, rotate_limit=30),  # , p=0.05),
+                    al.OpticalDistortion(border_mode=cv2.BORDER_CONSTANT, distort_limit=5.0, shift_limit=0.1),
+                    # , p=0.05),
+                    al.GridDistortion(border_mode=cv2.BORDER_CONSTANT),  # , p=0.05),
+                    al.ElasticTransform(border_mode=cv2.BORDER_CONSTANT, alpha_affine=15),  # , p=0.05),
+                ], p=0.1),
+
+                al.OneOf([
+                    al.RandomGamma(),  # p=0.05),
+                    al.HueSaturationValue(),  # p=0.05),
+                    al.RGBShift(),  # p=0.05),
+                    al.CLAHE(),  # p=0.05),
+                    al.ChannelShuffle(),  # p=0.05),
+                    al.InvertImg(),  # p=0.05),
+                ], p=0.1),
+                al.OneOf([
+                    al.RandomSnow(),  # p=0.05),
+                    al.RandomRain(),  # p=0.05),
+                    al.RandomFog(),  # p=0.05),
+                    al.RandomSunFlare(num_flare_circles_lower=1, num_flare_circles_upper=2, src_radius=110),
+                    # p=0.05, ),
+                    al.RandomShadow(),  # p=0.05),
+                ], p=0.1),
+                al.RandomBrightnessContrast(p=0.1),
+
+                al.OneOf([
+                    al.GaussNoise(),  # p=0.05),
+                    al.ISONoise(),  # p=0.05),
+                    al.MultiplicativeNoise(),  # p=0.05),
+                ], p=0.1),
+
+                al.OneOf([
+                    al.ToGray(),  # p=0.05),
+                    al.ToSepia(),  # p=0.05),
+                    al.Solarize(),  # p=0.05),
+                    al.Equalize(),  # p=0.05),
+                    al.Posterize(),  # p=0.05),
+                    al.FancyPCA(),  # p=0.05),
+                ], p=0.1),
+
+                al.OneOf([
+                    al.MotionBlur(blur_limit=1),
+                    al.Blur(blur_limit=1),
+                    al.MedianBlur(blur_limit=1),
+                    al.GaussianBlur(blur_limit=1),
+                ], p=0.1),
+                al.OneOf([
+                    al.CoarseDropout(),  # p=0.05),
+                    al.Cutout(),  # p=0.05),
+                    al.GridDropout(),  # p=0.05),
+                    al.ChannelDropout(),  # p=0.05),
+                    al.RandomGridShuffle(),  # p=0.05),
+                ], p=0.1),
+                al.OneOf([
+                    al.Downscale(),  # p=0.1),
+                    al.ImageCompression(quality_lower=60),  # , p=0.1),
+                ], p=0.1),
+
+            ], p=0.5),
+            # al.Normalize(),
+            ToTensorV2()
+        ])
+    else:
+        train_transform = transforms.Compose([
+            transforms.Resize(256),
+            transforms.RandomResizedCrop(224),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+        ])
     test_transform = transforms.Compose([
         transforms.Resize(256),
         transforms.CenterCrop(224),
         transforms.ToTensor(),
     ])
 
-    train_transform = MultiDataTransform(train_transform)
+    if use_albu_aug:
+        train_transform = MultiDataTransformAlbu(train_transform)
+    else:
+        train_transform = MultiDataTransform(train_transform)
 
     return train_transform, test_transform
 
 
 def get_dataset(P, dataset, test_only=False, image_size=None, download=False, eval=False):
     if not P.use_cifar10 or dataset in ['imagenet', 'cub', 'stanford_dogs', 'flowers102',
-                   'places365', 'food_101', 'caltech_256', 'dtd', 'pets', 'skin', 'ab'] or dataset.startswith("skin"):
+                                        'places365', 'food_101', 'caltech_256', 'dtd', 'pets', 'skin',
+                                        'ab'] or dataset.startswith("skin"):
         if eval:
             train_transform, test_transform = get_simclr_eval_transform_imagenet(P.ood_samples,
                                                                                  P.resize_factor, P.resize_fix)
         else:
-            train_transform, test_transform = get_transform_imagenet()
+            train_transform, test_transform = get_transform_imagenet(P.use_albu_aug)
     else:
         if dataset == 'skin_small':
             image_size = (32, 32, 3)
