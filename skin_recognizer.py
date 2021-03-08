@@ -195,7 +195,13 @@ class SkinRecognizer(object):
 
 
 def main(P):
-    sr = SkinRecognizer(P.load_path, P.axis_path, use_cuda=P.use_cuda, score_thres=P.score_thres)
+    if P.w_sim_path:
+        weight_sim = pickle.load(open(P.w_sim_path, "rb"))
+        weight_shi = pickle.load(open(P.w_shi_path, "rb"))
+        sr = SkinRecognizer(P.load_path, P.axis_path, use_cuda=P.use_cuda, score_thres=P.score_thres,
+                            weight_sim=weight_sim, weight_shi=weight_shi)
+    else:
+        sr = SkinRecognizer(P.load_path, P.axis_path, use_cuda=P.use_cuda, score_thres=P.score_thres)
 
     image_files = glob.glob(os.path.join(P.image_dir, "*"))
     is_skins = 0
@@ -205,7 +211,7 @@ def main(P):
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         is_skins += sr.is_skin(img)
 
-    if P.is_true:
+    if P.is_positive:
         print('true accuracy thres', P.score_thres, is_skins / len(image_files))
     else:
         print('false accuracy thres', P.score_thres, 1. - (is_skins / len(image_files)))
@@ -219,8 +225,11 @@ if __name__ == '__main__':
     parser.add_argument('--image_dir', type=str,
                         default='/home/irelin/resource/afp/skin_anomaly_detection/real_test_images')
     parser.add_argument('--axis_path', type=str, default='/home/irelin/resource/afp/skin_anomaly_detection/axis.pth')
+
+    parser.add_argument('--w_sim_path', type=str, default=None)
+    parser.add_argument('--w_shi_path', type=str, default=None)
     parser.add_argument('--score_thres', type=float, default=0.4)
     parser.add_argument('--use_cuda', action='store_true', default=False)
-    parser.add_argument('--is_true', action='store_true', default=True)
+    parser.add_argument('--is_positive', action='store_true', default=True)
 
     main(parser.parse_args())

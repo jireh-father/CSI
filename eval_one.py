@@ -148,8 +148,12 @@ def main(P):
     P.shift_trans, P.K_shift = C.get_shift_module(P, eval=True)
 
     P.axis = pickle.load(open(P.axis_path, "rb"))
-    P.weight_sim = [0.007519226599080519, 0.007939391391667395, 0.008598049328054363, 0.015014530319964874]
-    P.weight_shi = [0.04909334419285857, 0.052858438675397496, 0.05840793893796496, 0.11790745570891596]
+    if P.w_sim_path:
+        P.weight_sim = pickle.load(open(P.w_sim_path, "rb"))
+        P.weight_shi = pickle.load(open(P.w_shi_path, "rb"))
+    else:
+        P.weight_sim = [0.007519226599080519, 0.007939391391667395, 0.008598049328054363, 0.015014530319964874]
+        P.weight_shi = [0.04909334419285857, 0.052858438675397496, 0.05840793893796496, 0.11790745570891596]
 
     hflip = TL.HorizontalFlipLayer().to(device)
 
@@ -192,12 +196,12 @@ def main(P):
     print(total_scores)
     total_scores = np.array(total_scores)
     for i in range(20, 100):
-        if P.is_true:
+        if P.is_positive:
             print('true accuracy', i, (total_scores >= i / 100).sum() / len(total_scores))
         else:
             print('false accuracy', i, (total_scores < i/100).sum() / len(total_scores))
 
-    if P.is_true:
+    if P.is_positive:
         print('true accuracy thres', P.score_thres, (total_scores >= P.score_thres).sum() / len(total_scores))
     else:
         print('false accuracy thres', P.score_thres, (total_scores < P.score_thres).sum() / len(total_scores))
@@ -209,8 +213,10 @@ if __name__ == '__main__':
     parser.add_argument('--load_path', type=str, default='/home/irelin/resource/afp/skin_anomaly_detection/resnet18_224_last.model')
     parser.add_argument('--image_dir', type=str, default='/home/irelin/resource/afp/skin_anomaly_detection/real_test_images')
     parser.add_argument('--axis_path', type=str, default='/home/irelin/resource/afp/skin_anomaly_detection/axis.pth')
+    parser.add_argument('--w_sim_path', type=str, default=None)
+    parser.add_argument('--w_shi_path', type=str, default=None)
     parser.add_argument('--score_thres', type=float, default=0.64)
     parser.add_argument('--use_cuda', action='store_true', default=False)
-    parser.add_argument('--is_true', action='store_true', default=True)
+    parser.add_argument('--is_positive', action='store_true', default=True)
 
     main(parser.parse_args())
