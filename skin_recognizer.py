@@ -233,6 +233,6 @@ if __name__ == '__main__':
     parser.add_argument('--w_shi_path', type=str, default=None)
     parser.add_argument('--score_thres', type=float, default=0.4)
     parser.add_argument('--use_cuda', action='store_true', default=False)
-    parser.add_argument('--is_positive', action='store_true', default=True)
+    parser.add_argument('--is_positive', action='store_true', default=False)
 
     main(parser.parse_args())
