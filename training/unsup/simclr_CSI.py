@@ -47,6 +47,7 @@ def train(P, epoch, model, criterion, optimizer, scheduler, loader, logger=None,
             batch_size = images[0].size(0)
             images1, images2 = images[0].to(device), images[1].to(device)
         labels = labels.to(device)
+        print(images[0])
         print(len(images))
         print(images[0].shape)
         print(type(images))
