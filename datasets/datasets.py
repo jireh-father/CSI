@@ -309,7 +309,7 @@ def get_dataset(P, dataset, test_only=False, image_size=None, download=False, ev
 
     elif dataset == 'skin_total':
         image_size = (224, 224, 3)
-        n_classes = 4
+        n_classes = 3
         train_dir = os.path.join(DATA_PATH, 'skin_total', 'train')
         test_dir = os.path.join(DATA_PATH, 'skin_total', 'test')
         train_set = datasets.ImageFolder(train_dir, transform=train_transform)
@@ -395,10 +395,10 @@ def get_superclass_list(dataset):
         return IMAGENET_SUPERCLASS
     elif dataset in ['skin', 'skin_small', 'ab']:
         return list(range(2))
+    elif dataset in ['skin_total']:
+        return list(range(3))
     elif dataset.startswith("skin"):
         return list(range(2))
-    elif dataset in ['skin_total']:
-        return list(range(4))
     else:
         return list(range(2))
         # raise NotImplementedError()
