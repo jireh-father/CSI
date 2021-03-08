@@ -88,7 +88,7 @@ def train(P, epoch, model, criterion, optimizer, scheduler, loader, logger=None,
         linear_optim.step()
 
         ### Log losses ###
-        losses['cls'].update(0, batch_size)
+        losses['cls'].update(loss_linear, batch_size)
         losses['sim'].update(loss_sim.item(), batch_size)
 
         if count % 50 == 0:
