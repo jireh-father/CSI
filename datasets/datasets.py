@@ -169,10 +169,10 @@ def get_transform_imagenet(use_albu_aug):
                 ], p=0.1),
 
                 al.OneOf([
-                    al.MotionBlur(blur_limit=1),
-                    al.Blur(blur_limit=1),
-                    al.MedianBlur(blur_limit=1),
-                    al.GaussianBlur(blur_limit=1),
+                    # al.MotionBlur(blur_limit=1),
+                    al.Blur(blur_limit=[3, 5]),
+                    al.MedianBlur(blur_limit=[3, 5]),
+                    al.GaussianBlur(blur_limit=[3, 5]),
                 ], p=0.1),
                 al.OneOf([
                     al.CoarseDropout(),  # p=0.05),
