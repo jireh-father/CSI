@@ -49,8 +49,8 @@ class MultiDataTransformAlbu(object):
         self.transform2 = transform
 
     def __call__(self, sample):
-        x1 = self.transform1(image=sample)['image']
-        x2 = self.transform1(image=sample)['image']
+        x1 = self.transform1(image=np.array(sample))['image']
+        x2 = self.transform1(image=np.array(sample))['image']
         return x1, x2
 
 
