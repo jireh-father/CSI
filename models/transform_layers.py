@@ -383,6 +383,9 @@ class ColorJitterLayer(nn.Module):
 
     def forward(self, inputs):
         _prob = inputs.new_full((inputs.size(0),), self.prob)
+        print(type(_prob))
+        print(_prob)
+        print(_prob.shape)
         _mask = torch.bernoulli(_prob).view(-1, 1, 1, 1)
         return inputs * (1 - _mask) + self.transform(inputs) * _mask
 
