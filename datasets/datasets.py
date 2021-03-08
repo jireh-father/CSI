@@ -187,7 +187,7 @@ def get_transform_imagenet(use_albu_aug):
                 ], p=0.1),
 
             ], p=0.5),
-            # al.Normalize(),
+            al.Normalize(),
             ToTensorV2()
         ])
     else:
