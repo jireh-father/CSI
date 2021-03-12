@@ -46,7 +46,12 @@ def test_classifier(P, model, loader, steps, marginal=False, logger=None):
     mode = model.training
     model.eval()
 
+    total_preds = []
+    total_labels = []
     for n, (images, labels) in enumerate(loader):
+        print(labels)
+        print(labels.shape)
+        sys.exit()
         batch_size = images.size(0)
 
         images, labels = images.to(device), labels.to(device)
@@ -60,9 +65,8 @@ def test_classifier(P, model, loader, steps, marginal=False, logger=None):
         else:
             outputs = model(images)
 
-        print(outputs)
-        print(outputs.shape)
-        sys.exit()
+        _, preds = torch.max(outputs, 1)
+        total_preds += list(preds.cpu().numpy())
         top1, = error_k(outputs.data, labels, ks=(1,))
         error_top1.update(top1.item(), batch_size)
 
