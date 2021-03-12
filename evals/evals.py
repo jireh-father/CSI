@@ -13,6 +13,8 @@ import models.transform_layers as TL
 from utils.temperature_scaling import _ECELoss
 from utils.utils import AverageMeter, set_random_seed, normalize
 from sklearn.metrics import f1_score, accuracy_score
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import classification_report
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 ece_criterion = _ECELoss().to(device)
@@ -82,6 +84,10 @@ def test_classifier(P, model, loader, steps, marginal=False, logger=None):
     f1 = f1_score(total_labels, total_preds, average='macro')
     acc = accuracy_score(total_labels, total_preds)
     print('f1', f1, 'acc', acc)
+    cls_report = classification_report(total_labels, total_preds)  # , target_names=classes)
+    cf = confusion_matrix(total_labels, total_preds)
+    print(cls_report)
+    print(cf)
 
     if logger is not None:
         logger.scalar_summary('eval/clean_error', error_top1.average, steps)
