@@ -12,6 +12,7 @@ from sklearn.metrics import roc_auc_score
 import models.transform_layers as TL
 from utils.temperature_scaling import _ECELoss
 from utils.utils import AverageMeter, set_random_seed, normalize
+from sklearn.metrics import f1_score, accuracy_score
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 ece_criterion = _ECELoss().to(device)
@@ -49,9 +50,7 @@ def test_classifier(P, model, loader, steps, marginal=False, logger=None):
     total_preds = []
     total_labels = []
     for n, (images, labels) in enumerate(loader):
-        print(labels)
-        print(labels.shape)
-        sys.exit()
+        total_labels += list(labels.numpy())
         batch_size = images.size(0)
 
         images, labels = images.to(device), labels.to(device)
@@ -79,6 +78,10 @@ def test_classifier(P, model, loader, steps, marginal=False, logger=None):
 
     log_(' * [Error@1 %.3f] [ECE %.3f]' %
          (error_top1.average, error_calibration.average))
+
+    f1 = f1_score(total_labels, total_preds, average='macro')
+    acc = accuracy_score(total_labels, total_preds)
+    print('f1', f1, 'acc', acc)
 
     if logger is not None:
         logger.scalar_summary('eval/clean_error', error_top1.average, steps)
@@ -124,6 +127,7 @@ def eval_ood_detection(P, model, id_loader, ood_loaders, ood_scores, train_loade
 def get_ood_score_func(P, model, ood_score, simclr_aug=None):
     def score_func(x):
         return compute_ood_score(P, model, ood_score, x, simclr_aug=simclr_aug)
+
     return score_func
 
 
