@@ -60,6 +60,9 @@ def test_classifier(P, model, loader, steps, marginal=False, logger=None):
         else:
             outputs = model(images)
 
+        print(outputs)
+        print(outputs.shape)
+        sys.exit()
         top1, = error_k(outputs.data, labels, ks=(1,))
         error_top1.update(top1.item(), batch_size)
 
