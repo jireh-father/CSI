@@ -19,7 +19,8 @@ P.multi_gpu = False
 if torch.cuda.is_available():
     torch.cuda.set_device(P.local_rank)
 device = torch.device(f"cuda" if torch.cuda.is_available() else "cpu")
-
+print(device)
+sys.exit()
 ### Initialize dataset ###
 ood_eval = P.mode == 'ood_pre'
 if (not P.use_cifar10 or P.dataset == 'imagenet' or P.dataset == 'skin' or P.dataset == 'ab' or P.dataset.startswith("skin")) and ood_eval:
