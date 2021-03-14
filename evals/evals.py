@@ -112,7 +112,8 @@ def eval_ood_detection(P, model, id_loader, ood_loaders, ood_scores, train_loade
             save_path += f'_{P.one_class_idx}'
 
         scores_id = get_scores(id_loader, score_func)
-
+        for i in range(20, 91):
+            print('pos accuracy', i, (scores_id >= i / 100).sum() / len(scores_id))
         if P.save_score:
             np.save(f'{save_path}.npy', scores_id)
 
@@ -122,6 +123,8 @@ def eval_ood_detection(P, model, id_loader, ood_loaders, ood_scores, train_loade
                 auroc_dict['interp'][ood_score] = get_auroc(scores_id, scores_ood)
             else:
                 scores_ood = get_scores(ood_loader, score_func)
+                for i in range(20, 91):
+                    print('ood accuracy', i, (scores_ood < i / 100).sum() / len(scores_ood))
                 auroc_dict[ood][ood_score] = get_auroc(scores_id, scores_ood)
 
             if P.save_score:
