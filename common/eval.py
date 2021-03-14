@@ -78,5 +78,5 @@ model = C.get_shift_classifer(model, P.K_shift).to(device)
 criterion = nn.CrossEntropyLoss().to(device)
 
 if P.load_path is not None:
-    checkpoint = torch.load(P.load_path)
+    checkpoint = torch.load(P.load_path, map_location=device)
     model.load_state_dict(checkpoint, strict=not P.no_strict)
