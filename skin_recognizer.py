@@ -34,7 +34,7 @@ class SkinRecognizer(object):
             P.resize_factor = resize_factor
             P.resize_fix = resize_fix
             P.layers = layers
-
+            P.shift_trans, P.K_shift = self.get_shift_module(shift_trans_type)
             P.axis = pickle.load(open(axis_path, "rb"))
             P.weight_sim = weight_sim
             P.weight_shi = weight_shi
@@ -207,6 +207,7 @@ class SkinRecognizer(object):
         img = self.test_transform(img)
         img = torch.unsqueeze(img, 0)
         img = img.to(self.device)
+        self.model.eval()
         outputs = 0
         for i in range(num_rotation):
             rot_images = torch.rot90(img, i, (2, 3))
