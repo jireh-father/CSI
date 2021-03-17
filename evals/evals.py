@@ -67,6 +67,8 @@ def test_classifier(P, model, loader, steps, marginal=False, logger=None):
             outputs = model(images)
 
         _, preds = torch.max(outputs, 1)
+        print(preds.shape)
+        sys.exit()
         total_preds += list(preds.cpu().numpy())
         top1, = error_k(outputs.data, labels, ks=(1,))
         error_top1.update(top1.item(), batch_size)
@@ -196,12 +198,12 @@ def compute_ood_score(P, model, ood_score, x, simclr_aug=None):
     elif ood_score == 'baseline_marginalized':
 
         total_outputs = 0
-        for i in range(3):
+        for i in range(4):
             x_rot = torch.rot90(x, i, (2, 3))
             outputs, outputs_aux = model(x_rot, penultimate=True, joint=True)
             total_outputs += outputs_aux['joint'][:, P.n_classes * i:P.n_classes * (i + 1)]
 
-        scores = F.softmax(total_outputs / 3., dim=1).max(dim=1)[0]
+        scores = F.softmax(total_outputs / 4., dim=1).max(dim=1)[0]
         return scores
 
     else:
