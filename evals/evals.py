@@ -59,10 +59,10 @@ def test_classifier(P, model, loader, steps, marginal=False, logger=None):
 
         if marginal:
             outputs = 0
-            for i in range(4):
+            for i in range(1):
                 rot_images = torch.rot90(images, i, (2, 3))
                 _, outputs_aux = model(rot_images, joint=True)
-                outputs += outputs_aux['joint'][:, P.n_classes * i: P.n_classes * (i + 1)] / 4.
+                outputs += outputs_aux['joint'][:, P.n_classes * i: P.n_classes * (i + 1)]# / 4.
         else:
             outputs = model(images)
 
@@ -144,8 +144,6 @@ def get_scores(loader, score_func):
     scores = []
     for i, (x, _) in enumerate(loader):
         s = score_func(x.to(device))
-        print(s)
-        sys.exit()
         assert s.dim() == 1 and s.size(0) == x.size(0)
 
         scores.append(s.detach().cpu().numpy())
