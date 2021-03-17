@@ -195,7 +195,7 @@ class SkinRecognizer(object):
         print(scores)
         return scores[0] >= self.score_thres
 
-    def is_skin_and_what_class(self, img, num_rotation=2, classes=['armpit_belly', 'ear', 'foot']):
+    def is_skin_and_what_class(self, img, num_rotation=1, classes=['armpit_belly', 'ear', 'foot']):
         if num_rotation > 4:
             num_rotation = 4
         if num_rotation < 1:
@@ -214,7 +214,7 @@ class SkinRecognizer(object):
                 _, outputs_aux = self.model(rot_images, joint=True)
             outputs += outputs_aux['joint'][:, n_classes * i: n_classes * (i + 1)]
         print(outputs)
-        _, preds = torch.max(outputs / float(num_rotation * 4), 1)
+        _, preds = torch.max(outputs, 1)
 
         result_class = classes[preds.cpu().numpy()[0]]
 
