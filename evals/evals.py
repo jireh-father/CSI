@@ -67,9 +67,6 @@ def test_classifier(P, model, loader, steps, marginal=False, logger=None):
             outputs = model(images)
 
         _, preds = torch.max(outputs, 1)
-        print(preds.shape)
-        print(preds)
-        sys.exit()
         total_preds += list(preds.cpu().numpy())
         top1, = error_k(outputs.data, labels, ks=(1,))
         error_top1.update(top1.item(), batch_size)
@@ -147,6 +144,8 @@ def get_scores(loader, score_func):
     scores = []
     for i, (x, _) in enumerate(loader):
         s = score_func(x.to(device))
+        print(s)
+        sys.exit()
         assert s.dim() == 1 and s.size(0) == x.size(0)
 
         scores.append(s.detach().cpu().numpy())
