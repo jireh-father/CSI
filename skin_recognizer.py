@@ -203,6 +203,7 @@ class SkinRecognizer(object):
 
         n_classes = len(classes)
 
+        img = Image.fromarray(img)
         img = self.test_transform(img)
         outputs = 0
         for i in range(num_rotation):
