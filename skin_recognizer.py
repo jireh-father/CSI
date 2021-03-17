@@ -34,7 +34,7 @@ class SkinRecognizer(object):
             P.resize_factor = resize_factor
             P.resize_fix = resize_fix
             P.layers = layers
-            P.shift_trans, P.K_shift = self.get_shift_module(shift_trans_type)
+
             P.axis = pickle.load(open(axis_path, "rb"))
             P.weight_sim = weight_sim
             P.weight_shi = weight_shi
@@ -43,6 +43,7 @@ class SkinRecognizer(object):
             self.layers = P.layers
             self.simclr_aug = self.get_simclr_augmentation(P.image_size).to(device)
         else:
+            P.shift_trans, P.K_shift = self.get_shift_module(shift_trans_type)
             self.params = P
 
         self.test_transform = transforms.Compose([
