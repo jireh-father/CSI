@@ -42,6 +42,8 @@ class SkinRecognizer(object):
             self.params = P
             self.layers = P.layers
             self.simclr_aug = self.get_simclr_augmentation(P.image_size).to(device)
+        else:
+            self.params = P
 
         self.test_transform = transforms.Compose([
             transforms.Resize(256),
