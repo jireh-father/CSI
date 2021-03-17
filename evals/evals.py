@@ -59,10 +59,10 @@ def test_classifier(P, model, loader, steps, marginal=False, logger=None):
 
         if marginal:
             outputs = 0
-            for i in range(3):
+            for i in range(4):
                 rot_images = torch.rot90(images, i, (2, 3))
                 _, outputs_aux = model(rot_images, joint=True)
-                outputs += outputs_aux['joint'][:, P.n_classes * i: P.n_classes * (i + 1)] / 3.
+                outputs += outputs_aux['joint'][:, P.n_classes * i: P.n_classes * (i + 1)] / 4.
         else:
             outputs = model(images)
 
@@ -196,12 +196,12 @@ def compute_ood_score(P, model, ood_score, x, simclr_aug=None):
     elif ood_score == 'baseline_marginalized':
 
         total_outputs = 0
-        for i in range(2):
+        for i in range(3):
             x_rot = torch.rot90(x, i, (2, 3))
             outputs, outputs_aux = model(x_rot, penultimate=True, joint=True)
             total_outputs += outputs_aux['joint'][:, P.n_classes * i:P.n_classes * (i + 1)]
 
-        scores = F.softmax(total_outputs / 2., dim=1).max(dim=1)[0]
+        scores = F.softmax(total_outputs / 3., dim=1).max(dim=1)[0]
         return scores
 
     else:
