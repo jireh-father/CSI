@@ -207,6 +207,7 @@ class SkinRecognizer(object):
         img = self.test_transform(img)
         outputs = 0
         for i in range(num_rotation):
+            print(img.shape)
             rot_images = torch.rot90(img, i, (2, 3))
             _, outputs_aux = self.model(rot_images, joint=True)
             outputs += outputs_aux['joint'][:, n_classes * i: n_classes * (i + 1)] / float(num_rotation)
