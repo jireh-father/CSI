@@ -212,13 +212,13 @@ class SkinRecognizer(object):
             rot_images = torch.rot90(img, i, (2, 3))
             with torch.no_grad():
                 _, outputs_aux = self.model(rot_images, joint=True)
-            outputs += outputs_aux['joint'][:, n_classes * i: n_classes * (i + 1)] / float(num_rotation)
+            outputs += outputs_aux['joint'][:, n_classes * i: n_classes * (i + 1)]
         print(outputs)
-        _, preds = torch.max(outputs, 1)
+        _, preds = torch.max(outputs / float(num_rotation * 4), 1)
 
         result_class = classes[preds.cpu().numpy()[0]]
 
-        scores = F.softmax(outputs, dim=1).max(dim=1)[0]
+        scores = F.softmax(outputs / float(num_rotation), dim=1).max(dim=1)[0]
         score = scores.detach().cpu().numpy()[0]
         print(score)
         return result_class, score >= self.score_thres
