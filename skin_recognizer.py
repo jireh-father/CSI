@@ -9,47 +9,46 @@ import os
 import pickle
 import time
 import cv2
+import torch.nn.functional as F
 
 
 class SkinRecognizer(object):
-    def __init__(self, model_path, axis_path, score_thres=0.86, image_size=224, model='resnet18_imagenet',
+    def __init__(self, model_path, axis_path=None, score_thres=0.86, image_size=224, model='resnet18_imagenet',
                  shift_trans_type='rotation',
                  resize_factor=0.54, resize_fix=True, layers=['simclr', 'shift'], use_cuda=False,
                  weight_sim=[0.007519226599080519, 0.007939391391667395, 0.008598049328054363, 0.015014530319964874],
-                 weight_shi=[0.04909334419285857, 0.052858438675397496, 0.05840793893796496, 0.11790745570891596]):
+                 weight_shi=[0.04909334419285857, 0.052858438675397496, 0.05840793893796496, 0.11790745570891596],
+                 n_classes=2, is_multi_class=False):
         class DumpClass(object):
             pass
 
         P = DumpClass()
-        P.shift_trans_type = shift_trans_type
-        P.n_classes = 2
+        device = torch.device(f"cuda" if use_cuda else "cpu")
+        self.device = device
+        P.n_classes = n_classes
         P.model = model
         P.image_size = (image_size, image_size, 3)
 
-        P.resize_factor = resize_factor
-        P.resize_fix = resize_fix
-        P.layers = layers
-
-        device = torch.device(f"cuda" if use_cuda else "cpu")
-        self.device = device
-        P.shift_trans, P.K_shift = self.get_shift_module(shift_trans_type)
-
-        P.axis = pickle.load(open(axis_path, "rb"))
-        P.weight_sim = weight_sim
-        P.weight_shi = weight_shi
-
-        self.params = P
-
-        hflip = TL.HorizontalFlipLayer().to(device)
+        if not is_multi_class:
+            P.shift_trans_type = shift_trans_type
+            P.resize_factor = resize_factor
+            P.resize_fix = resize_fix
+            P.layers = layers
+            P.shift_trans, P.K_shift = self.get_shift_module(shift_trans_type)
+            P.axis = pickle.load(open(axis_path, "rb"))
+            P.weight_sim = weight_sim
+            P.weight_shi = weight_shi
+            self.hflip = TL.HorizontalFlipLayer().to(device)
+            self.params = P
+            self.layers = P.layers
+            self.simclr_aug = self.get_simclr_augmentation(P.image_size).to(device)
 
         self.test_transform = transforms.Compose([
             transforms.Resize(256),
             # transforms.Resize(224),
-            transforms.CenterCrop(224),
+            transforms.CenterCrop(image_size),
             transforms.ToTensor(),
         ])
-
-        simclr_aug = self.get_simclr_augmentation(P.image_size).to(device)
 
         model = self.get_classifier().to(device)
         model = self.get_shift_classifer(model).to(device)
@@ -61,9 +60,6 @@ class SkinRecognizer(object):
         model.load_state_dict(checkpoint)
         self.model = model
 
-        self.layers = P.layers
-        self.simclr_aug = simclr_aug
-        self.hflip = hflip
         self.score_thres = score_thres
 
     def get_shift_module(self, shift_trans_type):
@@ -194,7 +190,29 @@ class SkinRecognizer(object):
         features = self.get_features(img)
         scores = self.get_scores(features).numpy()
         print(scores)
-        return (scores >= self.score_thres).sum()
+        return scores[0] >= self.score_thres
+
+    def is_skin_and_what_class(self, img, num_rotation=2, classes=['armpit_belly', 'ear', 'foot']):
+        if num_rotation > 4:
+            num_rotation = 4
+        if num_rotation < 1:
+            num_rotation = 1
+
+        n_classes = len(classes)
+
+        img = self.test_transform(img)
+        outputs = 0
+        for i in range(num_rotation):
+            rot_images = torch.rot90(img, i, (2, 3))
+            _, outputs_aux = self.model(rot_images, joint=True)
+            outputs += outputs_aux['joint'][:, n_classes * i: n_classes * (i + 1)] / float(num_rotation)
+
+        _, preds = torch.max(outputs, 1)
+        result_class = classes[preds.cpu().numpy()[0]]
+
+        scores = F.softmax(outputs, dim=1).max(dim=1)[0]
+        score = scores.detach().cpu().numpy()[0]
+        return result_class, score >= self.score_thres
 
 
 def main(P):
@@ -204,15 +222,24 @@ def main(P):
         sr = SkinRecognizer(P.load_path, P.axis_path, use_cuda=P.use_cuda, score_thres=P.score_thres,
                             weight_sim=weight_sim, weight_shi=weight_shi)
     else:
-        sr = SkinRecognizer(P.load_path, P.axis_path, use_cuda=P.use_cuda, score_thres=P.score_thres)
+        sr = SkinRecognizer(P.load_path, P.axis_path, use_cuda=P.use_cuda, score_thres=P.score_thres,
+                            is_multi_class=P.is_multi_class)
 
     image_files = glob.glob(os.path.join(P.image_dir, "*"))
     is_skins = 0
+    classes = []
     for i, image_file in enumerate(image_files):
         start = time.time()
         img = cv2.imread(image_file)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        is_skins += sr.is_skin(img)
+        if P.is_multi_class:
+            cls, is_skin = sr.is_skin_and_what_class(img)
+            is_skins += is_skin
+            classes.append(cls)
+            print(is_skin, classes)
+        else:
+            is_skins += sr.is_skin(img)
+            print(is_skins)
 
     if P.is_positive:
         print('true accuracy thres', P.score_thres, is_skins / len(image_files))
@@ -234,5 +261,6 @@ if __name__ == '__main__':
     parser.add_argument('--score_thres', type=float, default=0.4)
     parser.add_argument('--use_cuda', action='store_true', default=False)
     parser.add_argument('--is_positive', action='store_true', default=False)
+    parser.add_argument('--is_multi_class', action='store_true', default=False)
 
     main(parser.parse_args())
