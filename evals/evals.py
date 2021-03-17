@@ -68,6 +68,7 @@ def test_classifier(P, model, loader, steps, marginal=False, logger=None):
 
         _, preds = torch.max(outputs, 1)
         print(preds.shape)
+        print(preds)
         sys.exit()
         total_preds += list(preds.cpu().numpy())
         top1, = error_k(outputs.data, labels, ks=(1,))
