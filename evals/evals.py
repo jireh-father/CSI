@@ -59,10 +59,10 @@ def test_classifier(P, model, loader, steps, marginal=False, logger=None):
 
         if marginal:
             outputs = 0
-            for i in range(2):
+            for i in range(3):
                 rot_images = torch.rot90(images, i, (2, 3))
                 _, outputs_aux = model(rot_images, joint=True)
-                outputs += outputs_aux['joint'][:, P.n_classes * i: P.n_classes * (i + 1)] / 2.
+                outputs += outputs_aux['joint'][:, P.n_classes * i: P.n_classes * (i + 1)] / 3.
         else:
             outputs = model(images)
 
