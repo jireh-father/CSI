@@ -219,6 +219,7 @@ class SkinRecognizer(object):
 
         scores = F.softmax(outputs, dim=1).max(dim=1)[0]
         score = scores.detach().cpu().numpy()[0]
+        print(score)
         return result_class, score >= self.score_thres
 
 
