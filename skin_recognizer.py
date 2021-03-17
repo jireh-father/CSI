@@ -226,7 +226,7 @@ def main(P):
                             weight_sim=weight_sim, weight_shi=weight_shi)
     else:
         sr = SkinRecognizer(P.load_path, P.axis_path, use_cuda=P.use_cuda, score_thres=P.score_thres,
-                            is_multi_class=P.is_multi_class)
+                            is_multi_class=P.is_multi_class, n_classes=P.n_classes)
 
     image_files = glob.glob(os.path.join(P.image_dir, "*"))
     is_skins = 0
@@ -262,6 +262,7 @@ if __name__ == '__main__':
     parser.add_argument('--w_sim_path', type=str, default=None)
     parser.add_argument('--w_shi_path', type=str, default=None)
     parser.add_argument('--score_thres', type=float, default=0.4)
+    parser.add_argument('--n_classes', type=int, default=3)
     parser.add_argument('--use_cuda', action='store_true', default=False)
     parser.add_argument('--is_positive', action='store_true', default=False)
     parser.add_argument('--is_multi_class', action='store_true', default=False)
