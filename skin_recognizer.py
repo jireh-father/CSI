@@ -206,6 +206,7 @@ class SkinRecognizer(object):
         img = Image.fromarray(img)
         img = self.test_transform(img)
         img = torch.unsqueeze(img, 0)
+        img = img.to(self.device)
         outputs = 0
         for i in range(num_rotation):
             rot_images = torch.rot90(img, i, (2, 3))
