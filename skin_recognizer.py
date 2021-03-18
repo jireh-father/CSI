@@ -52,18 +52,23 @@ class SkinRecognizer(object):
             transforms.CenterCrop(image_size),
             transforms.ToTensor(),
         ])
+        self.use_onnx = use_onnx
+        if use_onnx:
+            import onnxruntime
 
-        model = self.get_classifier(use_onnx).to(device)
-        model = self.get_shift_classifer(model).to(device)
-
-        if use_cuda:
-            checkpoint = torch.load(model_path)
+            self.model = onnxruntime.InferenceSession(model_path)
         else:
-            checkpoint = torch.load(model_path, map_location='cpu')
-        model.load_state_dict(checkpoint)
-        self.model = model
+            model = self.get_classifier().to(device)
+            model = self.get_shift_classifer(model).to(device)
 
-        self.model.eval()
+            if use_cuda:
+                checkpoint = torch.load(model_path)
+            else:
+                checkpoint = torch.load(model_path, map_location='cpu')
+            model.load_state_dict(checkpoint)
+            self.model = model
+
+            self.model.eval()
 
         self.score_thres = score_thres
 
@@ -86,7 +91,7 @@ class SkinRecognizer(object):
 
         return model
 
-    def get_classifier(self, use_onnx):
+    def get_classifier(self):
         if self.params.model == 'resnet18':
             from models.resnet import ResNet18
             classifier = ResNet18(num_classes=self.params.n_classes)
@@ -97,10 +102,7 @@ class SkinRecognizer(object):
             from models.resnet import ResNet50
             classifier = ResNet50(num_classes=self.params.n_classes)
         elif self.params.model == 'resnet18_imagenet':
-            if use_onnx:
-                from models.resnet_imagenet_multiclass_infer import resnet18
-            else:
-                from models.resnet_imagenet import resnet18
+            from models.resnet_imagenet_multiclass_infer import resnet18
             classifier = resnet18(num_classes=self.params.n_classes)
         elif self.params.model == 'resnet50_imagenet':
             from models.resnet_imagenet import resnet50
@@ -214,8 +216,12 @@ class SkinRecognizer(object):
         outputs = 0
         for i in range(num_rotation):
             rot_images = torch.rot90(img, i, (2, 3))
-            with torch.no_grad():
-                _, outputs_aux = self.model(rot_images, joint=True)
+            if self.use_onnx:
+                input = {self.model.get_inputs()[0].name: to_numpy(img)}
+                outputs_aux = self.model.run(None, input)
+            else:
+                with torch.no_grad():
+                    outputs_aux = self.model(rot_images)
             outputs += outputs_aux['joint'][:, n_classes * i: n_classes * (i + 1)]
         _, preds = torch.max(outputs, 1)
 
@@ -225,6 +231,10 @@ class SkinRecognizer(object):
         score = scores.detach().cpu().numpy()[0]
         print(score)
         return result_class, score >= self.score_thres
+
+
+def to_numpy(tensor):
+    return tensor.detach().cpu().numpy() if tensor.requires_grad else tensor.cpu().numpy()
 
 
 def main(P):
