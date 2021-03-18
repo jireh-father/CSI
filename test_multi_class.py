@@ -24,4 +24,4 @@ img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
 # 피부 여부 확인 함수
 class_name, is_skin = sr.is_skin_and_what_class(img)
-print(class_name, 'is skin', is_skin)
+print('class', class_name, ', is skin', is_skin)
