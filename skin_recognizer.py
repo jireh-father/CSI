@@ -234,7 +234,7 @@ class SkinRecognizer(object):
 
         outputs = outputs / float(num_rotation)
         scores = outputs.max()
-        score = scores.detach().cpu().numpy()[0]
+        score = scores.detach().cpu().numpy()
         return result_class, score >= self.score_thres, score
 
 
