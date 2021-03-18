@@ -259,6 +259,7 @@ def main(P):
         if P.is_multi_class:
             cls, is_skin = sr.is_skin_and_what_class(img)
             is_skins += is_skin
+            print(cls, is_skin)
             classes.append(cls)
         else:
             is_skins += sr.is_skin(img)
