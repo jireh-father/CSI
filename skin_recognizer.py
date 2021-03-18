@@ -18,7 +18,7 @@ class SkinRecognizer(object):
                  resize_factor=0.54, resize_fix=True, layers=['simclr', 'shift'], use_cuda=False,
                  weight_sim=[0.007519226599080519, 0.007939391391667395, 0.008598049328054363, 0.015014530319964874],
                  weight_shi=[0.04909334419285857, 0.052858438675397496, 0.05840793893796496, 0.11790745570891596],
-                 n_classes=2, is_multi_class=False):
+                 n_classes=2, is_multi_class=False, use_onnx=False):
         class DumpClass(object):
             pass
 
@@ -53,7 +53,7 @@ class SkinRecognizer(object):
             transforms.ToTensor(),
         ])
 
-        model = self.get_classifier().to(device)
+        model = self.get_classifier(use_onnx).to(device)
         model = self.get_shift_classifer(model).to(device)
 
         if use_cuda:
@@ -62,6 +62,8 @@ class SkinRecognizer(object):
             checkpoint = torch.load(model_path, map_location='cpu')
         model.load_state_dict(checkpoint)
         self.model = model
+
+        self.model.eval()
 
         self.score_thres = score_thres
 
@@ -84,7 +86,7 @@ class SkinRecognizer(object):
 
         return model
 
-    def get_classifier(self):
+    def get_classifier(self, use_onnx):
         if self.params.model == 'resnet18':
             from models.resnet import ResNet18
             classifier = ResNet18(num_classes=self.params.n_classes)
@@ -95,7 +97,10 @@ class SkinRecognizer(object):
             from models.resnet import ResNet50
             classifier = ResNet50(num_classes=self.params.n_classes)
         elif self.params.model == 'resnet18_imagenet':
-            from models.resnet_imagenet import resnet18
+            if use_onnx:
+                from models.resnet_imagenet_multiclass_infer import resnet18
+            else:
+                from models.resnet_imagenet import resnet18
             classifier = resnet18(num_classes=self.params.n_classes)
         elif self.params.model == 'resnet50_imagenet':
             from models.resnet_imagenet import resnet50
@@ -110,7 +115,6 @@ class SkinRecognizer(object):
         assert self.simclr_aug is not None
 
         # compute features in full dataset
-        self.model.eval()
 
         x = torch.unsqueeze(img, 0)
         x = x.to(self.device)  # gpu tensor
@@ -207,7 +211,6 @@ class SkinRecognizer(object):
         img = self.test_transform(img)
         img = torch.unsqueeze(img, 0)
         img = img.to(self.device)
-        self.model.eval()
         outputs = 0
         for i in range(num_rotation):
             rot_images = torch.rot90(img, i, (2, 3))

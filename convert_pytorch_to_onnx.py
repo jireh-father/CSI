@@ -13,10 +13,11 @@ score_thres = 0.860
 
 n_classes = 3
 is_multi_class = True
+use_onnx = True
 
 # 피부 모델의 모듈 로딩
 sr = SkinRecognizer(model_path, use_cuda=use_cuda, score_thres=score_thres, is_multi_class=is_multi_class,
-                    n_classes=n_classes)
+                    n_classes=n_classes, use_onnx=use_onnx)
 
 map_location = 'cpu'
 
