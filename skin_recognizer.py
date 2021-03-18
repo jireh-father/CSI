@@ -58,7 +58,7 @@ class SkinRecognizer(object):
 
             self.model = onnxruntime.InferenceSession(model_path)
         else:
-            model = self.get_classifier().to(device)
+            model = self.get_classifier(is_multi_class).to(device)
             model = self.get_shift_classifer(model).to(device)
 
             if use_cuda:
@@ -91,7 +91,7 @@ class SkinRecognizer(object):
 
         return model
 
-    def get_classifier(self):
+    def get_classifier(self, is_multi_class):
         if self.params.model == 'resnet18':
             from models.resnet import ResNet18
             classifier = ResNet18(num_classes=self.params.n_classes)
@@ -102,7 +102,10 @@ class SkinRecognizer(object):
             from models.resnet import ResNet50
             classifier = ResNet50(num_classes=self.params.n_classes)
         elif self.params.model == 'resnet18_imagenet':
-            from models.resnet_imagenet_multiclass_infer import resnet18
+            if is_multi_class:
+                from models.resnet_imagenet_multiclass_infer import resnet18
+            else:
+                from models.resnet_imagenet import resnet18
             classifier = resnet18(num_classes=self.params.n_classes)
         elif self.params.model == 'resnet50_imagenet':
             from models.resnet_imagenet import resnet50
