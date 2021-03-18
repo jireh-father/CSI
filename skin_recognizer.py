@@ -227,7 +227,10 @@ class SkinRecognizer(object):
             else:
                 with torch.no_grad():
                     outputs_aux = self.model(rot_images)
+            print(outputs_aux.shape)
             outputs += outputs_aux[:, n_classes * i: n_classes * (i + 1)]
+            print(outputs.shape)
+            sys.exit()
         _, preds = torch.max(outputs, 1)
 
         result_class = classes[preds.cpu().numpy()[0]]
