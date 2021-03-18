@@ -219,7 +219,7 @@ class SkinRecognizer(object):
             if self.use_onnx:
                 input = {self.model.get_inputs()[0].name: to_numpy(img)}
                 outputs_aux = self.model.run(None, input)
-                logits = torch.tensor(outputs_aux[0], dtype=torch.float)
+                outputs_aux = torch.tensor(outputs_aux[0], dtype=torch.float)
             else:
                 with torch.no_grad():
                     outputs_aux = self.model(rot_images)
