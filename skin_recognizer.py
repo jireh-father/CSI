@@ -10,6 +10,7 @@ import pickle
 import time
 import cv2
 import torch.nn.functional as F
+import numpy as np
 
 
 class SkinRecognizer(object):
@@ -233,7 +234,7 @@ class SkinRecognizer(object):
 
         scores = F.softmax(outputs / float(num_rotation), dim=1).max(dim=1)[0]
         score = scores.detach().cpu().numpy()[0]
-        return result_class, score >= self.score_thres
+        return result_class, score >= self.score_thres, score
 
 
 def to_numpy(tensor):
@@ -252,19 +253,34 @@ def main(P):
 
     image_files = glob.glob(os.path.join(P.image_dir, "*"))
     is_skins = 0
-    classes = []
+    result_classes = []
+    scores = []
     for i, image_file in enumerate(image_files):
-        start = time.time()
         img = cv2.imread(image_file)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         if P.is_multi_class:
-            cls, is_skin = sr.is_skin_and_what_class(img)
+            classes = P.classes.split(",")
+            cls, is_skin, score = sr.is_skin_and_what_class(img, classes=classes)
+            scores.append(score)
             is_skins += is_skin
-            print(cls, is_skin)
-            classes.append(cls)
+            print(cls, is_skin, score)
+            result_classes.append(cls)
         else:
             is_skins += sr.is_skin(img)
             print(is_skins)
+
+    for i in range(20, 100):
+        if P.is_positive:
+            print('ood positive accuracy. thres', i, (np.array(scores) >= i / 100).sum() / len(scores))
+        else:
+            print('ood negative accuracy. thres', i, (np.array(scores) < i / 100).sum() / len(scores))
+
+    if P.target_class:
+        class_truth = 0
+        for ret in result_classes:
+            if P.target_class == ret:
+                class_truth += 1
+        print("class {} accuracy is {}".format(P.target_class, float(class_truth) / len(result_classes)))
 
     if P.is_positive:
         print('true accuracy thres', P.score_thres, is_skins / len(image_files))
@@ -289,5 +305,7 @@ if __name__ == '__main__':
     parser.add_argument('--use_onnx', action='store_true', default=False)
     parser.add_argument('--is_positive', action='store_true', default=False)
     parser.add_argument('--is_multi_class', action='store_true', default=False)
+    parser.add_argument('--classes', type=str, default='armpit_belly,ear,foot')
+    parser.add_argument('--target_class', type=str, default=None)
 
     main(parser.parse_args())
