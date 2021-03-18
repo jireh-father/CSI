@@ -228,7 +228,8 @@ class SkinRecognizer(object):
                 with torch.no_grad():
                     outputs_aux = self.model(rot_images)
             outputs += outputs_aux[0][n_classes * i: n_classes * (i + 1)]
-        preds = torch.max(outputs, 0)
+        _, preds = torch.max(outputs, 0)
+
         result_class = classes[preds.cpu().numpy()]
 
         outputs = outputs / float(num_rotation)
