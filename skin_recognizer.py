@@ -232,7 +232,7 @@ class SkinRecognizer(object):
 
         result_class = classes[preds.cpu().numpy()]
 
-        scores = F.softmax(outputs / 4., dim=0).max()
+        scores = F.softmax(outputs / float(num_rotation), dim=0).max()
         score = scores.detach().cpu().numpy()
         return result_class, score >= self.score_thres, score
 
