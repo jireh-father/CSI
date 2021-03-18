@@ -34,7 +34,7 @@ test_cnt = 10
 total_exec_time = 0.
 for i in range(test_cnt):
     start = time.time()
-    class_name, is_skin = sr.is_skin_and_what_class(img)
+    class_name, is_skin, score = sr.is_skin_and_what_class(img)
     total_exec_time += time.time() - start
 print("pytorch model inference time", total_exec_time / test_cnt)
 print('class', class_name, ', is skin', is_skin)
@@ -70,7 +70,7 @@ sr.is_skin_and_what_class(img)
 total_exec_time = 0.
 for i in range(test_cnt):
     start = time.time()
-    class_name, is_skin = sr.is_skin_and_what_class(img)
+    class_name, is_skin, score = sr.is_skin_and_what_class(img)
     total_exec_time += time.time() - start
 print("onnx model inference time", total_exec_time / test_cnt)
 print('class', class_name, ', is skin', is_skin)
