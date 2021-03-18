@@ -225,8 +225,7 @@ class SkinRecognizer(object):
                 outputs_aux = torch.tensor(outputs_aux[0], dtype=torch.float)
             else:
                 with torch.no_grad():
-                    outputs_aux = self.model.forward_(rot_images, joint=True)
-                    outputs_aux = outputs_aux['joint']
+                    outputs_aux = self.model(rot_images)
             outputs += outputs_aux[:, n_classes * i: n_classes * (i + 1)]
         _, preds = torch.max(outputs, 1)
 
@@ -234,7 +233,6 @@ class SkinRecognizer(object):
 
         scores = F.softmax(outputs / float(num_rotation), dim=1).max(dim=1)[0]
         score = scores.detach().cpu().numpy()[0]
-        print(score)
         return result_class, score >= self.score_thres
 
 
