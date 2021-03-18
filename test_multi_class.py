@@ -20,6 +20,7 @@ sr = SkinRecognizer(model_path, use_cuda=use_cuda, score_thres=score_thres, is_m
                     n_classes=n_classes)
 
 img = cv2.imread(image_file, cv2.IMREAD_COLOR)
+print(img.shape)
 img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
 # 피부 여부 확인 함수
