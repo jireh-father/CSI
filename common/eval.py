@@ -52,6 +52,9 @@ if P.ood_dataset is None:
         P.ood_dataset = ['cub', 'stanford_dogs', 'flowers102', 'places365', 'food_101', 'caltech_256', 'dtd', 'pets']
     elif P.dataset == 'skin_total':
         P.ood_dataset = ['noskin']
+    elif P.dataset == 'erythema_all_pos_0_neg_23':
+        P.ood_dataset = ['erythema_label1']
+
 
 ood_test_loader = dict()
 if P.mode != 'test_marginalized_acc':
