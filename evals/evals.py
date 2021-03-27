@@ -82,9 +82,6 @@ def test_classifier(P, model, loader, steps, marginal=False, logger=None):
          (error_top1.average, error_calibration.average))
 
     f1 = f1_score(total_labels, total_preds, average='macro')
-    import pickle
-    pickle.dump(total_labels, open("labels.pkl", "wb+"))
-    pickle.dump(total_preds, open("preds.pkl", "wb+"))
     acc = accuracy_score(total_labels, total_preds)
     print('f1', f1, 'acc', acc)
     cls_report = classification_report(total_labels, total_preds)  # , target_names=classes)
